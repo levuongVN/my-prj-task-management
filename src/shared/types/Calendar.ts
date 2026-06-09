@@ -9,8 +9,8 @@ export interface CalendarEvent {
     time?: string;
     projectName?: string;
     date: string;
-    sourceType: "project" | "task";
-    sourceId: number;
+    sourceType: "project" | "task" | "meeting";
+    sourceId: string;
 }
 
 export interface CreateEventForm {

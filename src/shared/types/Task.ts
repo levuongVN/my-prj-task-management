@@ -1,8 +1,12 @@
 export interface Task {
-    id: number
+    id: string           // uuid
     title: string
     description?: string
-    status: string
-    due: string
-    priority: string
+    status: number       // integer (enum)
+    priority: number     // integer (enum)
+    deadline?: string    // timestamp, nullable → đổi từ "due" sang "deadline"
+    position: number
+    userId: string       // uuid
+    createdAt: string    // timestamp
+    updatedAt: string    // timestamp
 }

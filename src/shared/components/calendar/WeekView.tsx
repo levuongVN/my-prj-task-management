@@ -13,7 +13,10 @@ interface Props {
 
 export default function WeekView({ year, month, weekStartDay, allEvents, todayDate, onDayClick }: Props) {
     const days = buildWeekDays(year, month, weekStartDay);
-    const getEventsForDate = (date: string) => allEvents.filter((e) => e.date === date);
+    const getEventsForDate = (date: string) =>
+        allEvents.filter(
+            (e) => e.date.split("T")[0] === date
+        );
 
     return (
         <div className="overflow-hidden rounded-xl border border-white/15">

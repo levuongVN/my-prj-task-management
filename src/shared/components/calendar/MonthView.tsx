@@ -16,7 +16,10 @@ export default function MonthView({ year, month, allEvents, todayDate, onDayClic
     const [hoveredDay, setHoveredDay] = useState<string | null>(null);
     const days = buildMonthDays(year, month);
 
-    const getEventsForDate  = (date: string) => allEvents.filter((e) => e.date === date);
+    const getEventsForDate = (date: string) =>
+        allEvents.filter(
+            (e) => e.date.split("T")[0] === date
+        );
     const getDefaultEvents  = (events: CalendarEvent[]) =>
         events.filter((e) => e.type === "overdue" || e.type === "milestone" || e.type === "meeting");
 

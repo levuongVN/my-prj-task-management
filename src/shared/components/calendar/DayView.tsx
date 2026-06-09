@@ -9,7 +9,9 @@ interface Props {
 }
 
 export default function DayView({ date, allEvents, onNewEvent }: Props) {
-    const events = allEvents.filter((e) => e.date === date);
+    const events = allEvents.filter(
+        (e) => e.date.split("T")[0] === date
+    );
 
     const [y, m, d] = date.split("-").map(Number);
     const label = `${DAYS_OF_WEEK[new Date(y, m - 1, d).getDay()]}, ${MONTH_NAMES[m - 1]} ${d}`;

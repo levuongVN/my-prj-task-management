@@ -1,6 +1,7 @@
 import { AlertTriangle, Clock3 } from "lucide-react";
 import { getPriorityStyle, getStatusStyle } from "../../utils/taskStyle";
 import type { Task } from "../../types/Task";
+import { priorities, statuses } from "../../../constants/taskOption";
 
 interface TaskListProps {
     tasks: Task[]
@@ -41,7 +42,7 @@ export default function TaskList({ tasks }: TaskListProps) {
                                     </h3>
 
                                     <span
-                                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityStyle(task.priority)}`}
+                                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityStyle(priorities[task.priority])}`}
                                     >
                                         {task.priority}
                                     </span>
@@ -50,11 +51,11 @@ export default function TaskList({ tasks }: TaskListProps) {
                                 <div className="mt-5 flex flex-wrap items-center gap-3">
                                     <span className="inline-flex items-center gap-2 text-sm text-zinc-400">
                                         <Clock3 size={16} />
-                                        {task.due}
+                                        {task.deadline}
                                     </span>
 
                                     <span
-                                        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusStyle(task.status)}`}
+                                        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusStyle(statuses[task.status])}`}
                                     >
                                         <AlertTriangle size={14} />
                                         {task.status}

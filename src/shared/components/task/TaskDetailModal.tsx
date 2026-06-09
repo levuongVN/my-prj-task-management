@@ -9,6 +9,7 @@ import {
 
 import type { Task } from "../../types/Task";
 import Button from "../Ui/Button";
+import { priorities, statuses } from "../../../constants/taskOption";
 
 interface Props {
     isOpen: boolean;
@@ -26,10 +27,10 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
     };
 
     const statusBadge = {
-        Pending: "bg-orange-100 text-orange-700",
+        "Pending": "bg-orange-100 text-orange-700",
         "In Progress": "bg-blue-100 text-blue-700",
         "In Review": "bg-purple-100 text-purple-700",
-        Completed: "bg-green-100 text-green-700",
+        "Completed": "bg-green-100 text-green-700",
     };
 
     return (
@@ -55,7 +56,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                         </span>
                         <span
                             className={`inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-medium
-                                ${priorityBadge[task.priority as keyof typeof priorityBadge]}`}
+                                ${priorityBadge[priorities[task.priority] as keyof typeof priorityBadge]}`}
                         >
                             {task.priority}
                         </span>
@@ -68,7 +69,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                         </span>
                         <span
                             className={`inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-medium
-                                ${statusBadge[task.status as keyof typeof statusBadge]}`}
+                                ${statusBadge[statuses[task.status] as keyof typeof statusBadge]}`}
                         >
                             {task.status}
                         </span>
@@ -80,7 +81,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             Due date
                         </span>
                         <span className="text-sm font-medium text-white">
-                            {task.due}
+                            {task.deadline}
                         </span>
                     </div>
                 </div>

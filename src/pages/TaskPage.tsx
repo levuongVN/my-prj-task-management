@@ -12,40 +12,56 @@ import FilterDropdown from "../shared/components/Ui/FilterDropdown";
 import SortDropdown from "../shared/components/Ui/SortDropdown";
 import type { Task } from "../shared/types/Task";
 import TaskDetailModal from "../shared/components/task/TaskDetailModal";
-import { priorities, statuses } from "../constants/taskOption";
+import { priorities, statuses, TaskPriority, TaskStatus } from "../constants/taskOption";
 
 const initialTasks = [
     {
-        id: 1,
+        id: "uuid-1",
         title: "Design Landing Page",
         description: "Create modern hero section for SaaS website.",
-        priority: "High",
-        status: "In Progress",
-        due: "Today",
+        priority: TaskPriority.High,
+        status: TaskStatus.InProgress,
+        deadline: new Date().toISOString(),
+        position: 0,
+        userId: "user-uuid",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
     },
     {
         id: 2,
-        title: "Fix Authentication Flow",
-        description: "Resolve refresh token and session issues.",
-        priority: "Medium",
-        status: "Pending",
-        due: "Tomorrow",
+        title: "API Integration",
+        description: "Connect payment gateway and build webhook endpoints.",
+        priority: TaskPriority.Medium,
+        status: TaskStatus.Pending,
+        deadline: new Date().toISOString(),
+        position: 0,
+        userId: "user-uuid",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
     },
     {
         id: 3,
         title: "Team Meeting",
         description: "Weekly product discussion with team.",
-        priority: "Low",
-        status: "Completed",
-        due: "May 30",
+        priority: TaskPriority.Low,
+        status: TaskStatus.Completed,
+        deadline: new Date().toISOString(),
+        position: 0,
+        userId: "user-uuid",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
     },
     {
         id: 4,
         title: "Analytics Dashboard",
         description: "Implement charts and KPI tracking.",
-        priority: "High",
-        status: "In Review",
-        due: "Jun 02",
+        priority: TaskPriority.High,
+        status: TaskStatus.InReview,
+        deadline: new Date().toISOString(),
+        position: 0,
+        userId: "user-uuid",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
     },
 ] as Task[];
 
@@ -66,13 +82,13 @@ export default function TaskPage() {
             task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             task.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-        const matchesPriority =
+            const matchesPriority =
             selectedPriorities.length === 0 ||
-            selectedPriorities.includes(task.priority);
-
+            selectedPriorities.includes(priorities[task.priority]);
+        
         const matchesStatus =
             selectedStatuses.length === 0 ||
-            selectedStatuses.includes(task.status);
+            selectedStatuses.includes(statuses[task.status]);
 
         return (
             matchesSearch &&
@@ -87,41 +103,22 @@ export default function TaskPage() {
                     ? a.title.localeCompare(b.title)
                     : b.title.localeCompare(a.title);
 
-            case "priority": {
-                const priorityOrder = {
-                    High: 3,
-                    Medium: 2,
-                    Low: 1,
-                };
-
+            case "priority":
                 return sortOrder === "asc"
-                    ? priorityOrder[a.priority as keyof typeof priorityOrder] -
-                    priorityOrder[b.priority as keyof typeof priorityOrder]
-                    : priorityOrder[b.priority as keyof typeof priorityOrder] -
-                    priorityOrder[a.priority as keyof typeof priorityOrder];
-            }
+                    ? a.priority - b.priority
+                    : b.priority - a.priority;
 
-            case "status": {
-                const statusOrder = {
-                    Pending: 1,
-                    "In Progress": 2,
-                    "In Review": 3,
-                    Completed: 4,
-                };
-
+            case "status":
                 return sortOrder === "asc"
-                    ? statusOrder[a.status as keyof typeof statusOrder] -
-                    statusOrder[b.status as keyof typeof statusOrder]
-                    : statusOrder[b.status as keyof typeof statusOrder] -
-                    statusOrder[a.status as keyof typeof statusOrder];
-            }
+                    ? a.status - b.status
+                    : b.status - a.status;
 
             default:
                 return 0;
         }
     });
 
-    const handlePriorityChange = (id: number, value: string) => {
+    const handlePriorityChange = (id: string, value: number) => {
         setTasks((prev) =>
             prev.map((task) =>
                 task.id === id ? { ...task, priority: value } : task
@@ -129,7 +126,7 @@ export default function TaskPage() {
         );
     };
 
-    const handleStatusChange = (id: number, value: string) => {
+    const handleStatusChange = (id: string, value: number) => {
         setTasks((prev) =>
             prev.map((task) =>
                 task.id === id ? { ...task, status: value } : task

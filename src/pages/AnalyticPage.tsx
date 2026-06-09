@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -29,7 +29,6 @@ import {
 import { priorities, statuses } from "../constants/taskOption";
 import { TASKS_MOCK } from "../mocks/calendarMock";
 
-
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -42,41 +41,11 @@ ChartJS.register(
     Filler
 );
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
+type PeriodKey = "week" | "month" | "quarter";
 
-
-const WEEKLY_TASKS = {
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    completed: [4, 7, 5, 8, 6, 3, 2],
-    created: [6, 5, 8, 6, 9, 4, 3],
-};
-
-const MONTHLY_TREND = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    completed: [32, 45, 38, 60, 55, 72],
-    overdue: [8, 5, 10, 4, 7, 3],
-};
-
-const PRIORITY_DATA = {
-    labels: priorities,
-    values: [
-        TASKS_MOCK.filter((t) => t.priority === "High").length,
-        TASKS_MOCK.filter((t) => t.priority === "Medium").length,
-        TASKS_MOCK.filter((t) => t.priority === "Low").length,
-    ],
-};
-
-const STATUS_DATA = {
-    labels: statuses,
-    values: [
-        TASKS_MOCK.filter((t) => t.status === "Pending").length,
-        TASKS_MOCK.filter((t) => t.status === "In Progress").length,
-        TASKS_MOCK.filter((t) => t.status === "In Review").length,
-        TASKS_MOCK.filter((t) => t.status === "Completed").length,
-
-    ],
-};
+// ── Static mock data (không phụ thuộc period) ─────────────────────────────────
 
 const TOP_PROJECTS = [
     { name: "TaskFlow Redesign", tasks: 24, completed: 17, progress: 71 },
@@ -95,9 +64,69 @@ const RECENT_ACTIVITY = [
     { action: "Created", task: "Mobile push notifications", time: "Yesterday", type: "created" },
 ];
 
-type PeriodKey = "week" | "month" | "quarter";
+// ── Period helpers ─────────────────────────────────────────────────────────────
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+function getPeriodRange(period: PeriodKey, date: Date): [Date, Date] {
+    const d = new Date(date);
+
+    if (period === "week") {
+        const day = d.getDay();
+        const diffToMon = day === 0 ? -6 : 1 - day;
+        const start = new Date(d);
+        start.setDate(d.getDate() + diffToMon);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        end.setHours(23, 59, 59, 999);
+        return [start, end];
+    }
+
+    if (period === "month") {
+        const start = new Date(d.getFullYear(), d.getMonth(), 1);
+        const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+        return [start, end];
+    }
+
+    // quarter
+    const q = Math.floor(d.getMonth() / 3);
+    const start = new Date(d.getFullYear(), q * 3, 1);
+    const end = new Date(d.getFullYear(), q * 3 + 3, 0, 23, 59, 59, 999);
+    return [start, end];
+}
+
+function getDateLabel(period: PeriodKey, date: Date): string {
+    if (period === "week") {
+        const [start] = getPeriodRange("week", date);
+        const tmp = new Date(start);
+        tmp.setDate(tmp.getDate() + 3 - ((tmp.getDay() + 6) % 7));
+        const week1 = new Date(tmp.getFullYear(), 0, 4);
+        const weekNo =
+            1 +
+            Math.round(
+                ((tmp.getTime() - week1.getTime()) / 86400000 -
+                    3 +
+                    ((week1.getDay() + 6) % 7)) /
+                    7
+            );
+        return `Week ${weekNo}, ${start.getFullYear()}`;
+    }
+    if (period === "month") {
+        return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
+    const q = Math.floor(date.getMonth() / 3) + 1;
+    return `Q${q} ${date.getFullYear()}`;
+}
+
+function navigateDate(period: PeriodKey, date: Date, dir: "prev" | "next"): Date {
+    const d = new Date(date);
+    const delta = dir === "next" ? 1 : -1;
+    if (period === "week") d.setDate(d.getDate() + delta * 7);
+    else if (period === "month") d.setMonth(d.getMonth() + delta);
+    else d.setMonth(d.getMonth() + delta * 3);
+    return d;
+}
+
+// ── Chart defaults ─────────────────────────────────────────────────────────────
 
 const chartDefaults = {
     responsive: true,
@@ -119,46 +148,49 @@ const chartDefaults = {
 const gridColor = "rgba(255,255,255,0.04)";
 const tickColor = "#52525b";
 
-const totalTasks = TASKS_MOCK.length;
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const completedTasks = TASKS_MOCK.filter(
-    (t) => t.status === "Completed"
-).length;
-
-const inProgressTasks = TASKS_MOCK.filter(
-    (t) => t.status === "In Progress"
-).length;
-
-const overdueTasks = TASKS_MOCK.filter(
-    (t) =>
-        t.status !== "Completed" &&
-        new Date(t.due) < new Date()
-).length;
-
-const completionRate =
-    totalTasks === 0
-        ? 0
-        : Math.round(
-            (completedTasks / totalTasks) * 100
-        );
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AnalyticPage() {
     const [period, setPeriod] = useState<PeriodKey>("week");
     const [selectedDate, setSelectedDate] = useState(new Date());
 
-    const changeMonth = (direction: "prev" | "next") => {
-        const next = new Date(selectedDate);
-
-        if (direction === "prev") {
-            next.setMonth(next.getMonth() - 1);
-        } else {
-            next.setMonth(next.getMonth() + 1);
-        }
-
-        setSelectedDate(next);
+    const changeDate = (direction: "prev" | "next") => {
+        setSelectedDate((prev) => navigateDate(period, prev, direction));
     };
 
+    const handlePeriodChange = (p: PeriodKey) => {
+        setPeriod(p);
+        setSelectedDate(new Date());
+    };
+
+    // ── Tasks in current period ────────────────────────────────────────────────
+
+    const [rangeStart, rangeEnd] = useMemo(
+        () => getPeriodRange(period, selectedDate),
+        [period, selectedDate]
+    );
+
+    const tasksInRange = useMemo(
+        () =>
+            TASKS_MOCK.filter((t) => {
+                const due = new Date(t.deadline);
+                return due >= rangeStart && due <= rangeEnd;
+            }),
+        [rangeStart, rangeEnd]
+    );
+
+    const totalTasks = tasksInRange.length;
+    const completedTasks = tasksInRange.filter((t) => statuses[t.status] === "Completed").length;
+    const inProgressTasks = tasksInRange.filter((t) => statuses[t.status] === "In Progress").length;
+    const overdueTasks = tasksInRange.filter(
+        (t) => statuses[t.status] !== "Completed" && new Date(t.deadline) < new Date()
+    ).length;
+    const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
     // ── KPI cards ─────────────────────────────────────────────────────────────
+
     const kpis = [
         {
             label: "Tasks Completed",
@@ -202,13 +234,193 @@ export default function AnalyticPage() {
         },
     ];
 
-    // ── Chart data ─────────────────────────────────────────────────────────────
-    const barData = {
-        labels: WEEKLY_TASKS.labels,
+    // ── Bar chart data ─────────────────────────────────────────────────────────
+
+    const computedBarData = useMemo(() => {
+        if (period === "week") {
+            const [start] = getPeriodRange("week", selectedDate);
+
+            const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+            const completed = labels.map((_, i) => {
+                const day = new Date(start);
+                day.setDate(start.getDate() + i);
+                return tasksInRange.filter(
+                    (t) =>
+                        statuses[t.status] === "Completed" &&
+                        new Date(t.deadline).toDateString() === day.toDateString()
+                ).length;
+            });
+            const created = labels.map((_, i) => {
+                const day = new Date(start);
+                day.setDate(start.getDate() + i);
+                return tasksInRange.filter(
+                    (t) => new Date(t.deadline).toDateString() === day.toDateString()
+                ).length;
+            });
+            return { labels, completed, created };
+        }
+
+        if (period === "month") {
+            const [start, end] = getPeriodRange("month", selectedDate);
+            const labels: string[] = [];
+            const completed: number[] = [];
+            const created: number[] = [];
+            let cursor = new Date(start);
+            let w = 1;
+            while (cursor <= end) {
+                const wStart = new Date(cursor);
+                const wEnd = new Date(cursor);
+                wEnd.setDate(cursor.getDate() + 6);
+                if (wEnd > end) wEnd.setTime(end.getTime());
+                labels.push(`Week ${w}`);
+                completed.push(
+                    tasksInRange.filter(
+                        (t) =>
+                            statuses[t.status] === "Completed" &&
+                            new Date(t.deadline) >= wStart &&
+                            new Date(t.deadline) <= wEnd
+                    ).length
+                );
+                created.push(
+                    tasksInRange.filter(
+                        (t) => new Date(t.deadline) >= wStart && new Date(t.deadline) <= wEnd
+                    ).length
+                );
+                cursor.setDate(cursor.getDate() + 7);
+                w++;
+            }
+            return { labels, completed, created };
+        }
+
+        // quarter — 3 months
+        const q = Math.floor(selectedDate.getMonth() / 3);
+        const labels = [0, 1, 2].map((i) => MONTH_NAMES[q * 3 + i]);
+        const completed = [0, 1, 2].map((i) => {
+            const m = q * 3 + i;
+            return TASKS_MOCK.filter(
+                (t) =>
+                    statuses[t.status] === "Completed" &&
+                    new Date(t.deadline).getMonth() === m &&
+                    new Date(t.deadline).getFullYear() === selectedDate.getFullYear()
+            ).length;
+        });
+        const created = [0, 1, 2].map((i) => {
+            const m = q * 3 + i;
+            return TASKS_MOCK.filter(
+                (t) =>
+                    new Date(t.deadline).getMonth() === m &&
+                    new Date(t.deadline).getFullYear() === selectedDate.getFullYear()
+            ).length;
+        });
+        return { labels, completed, created };
+    }, [period, selectedDate, tasksInRange]);
+
+    // ── Line chart data ────────────────────────────────────────────────────────
+
+    const computedLineData = useMemo(() => {
+        const now = new Date();
+
+        if (period === "week") {
+            const labels: string[] = [];
+            const completed: number[] = [];
+            const overdue: number[] = [];
+            for (let i = 5; i >= 0; i--) {
+                const ref = new Date(selectedDate);
+                ref.setDate(ref.getDate() - i * 7);
+                const [s, e] = getPeriodRange("week", ref);
+                const wNum = Math.ceil(ref.getDate() / 7);
+                labels.push(`W${wNum}`);
+                completed.push(
+                    TASKS_MOCK.filter(
+                        (t) =>
+                            statuses[t.status] === "Completed" &&
+                            new Date(t.deadline) >= s &&
+                            new Date(t.deadline) <= e
+                    ).length
+                );
+                overdue.push(
+                    TASKS_MOCK.filter(
+                        (t) =>
+                            statuses[t.status] !== "Completed" &&
+                            new Date(t.deadline) >= s &&
+                            new Date(t.deadline) <= e &&
+                            new Date(t.deadline) < now
+                    ).length
+                );
+            }
+            return { labels, completed, overdue };
+        }
+
+        if (period === "month") {
+            const labels: string[] = [];
+            const completed: number[] = [];
+            const overdue: number[] = [];
+            for (let i = 5; i >= 0; i--) {
+                const ref = new Date(selectedDate);
+                ref.setMonth(ref.getMonth() - i);
+                const [s, e] = getPeriodRange("month", ref);
+                labels.push(MONTH_NAMES[ref.getMonth()]);
+                completed.push(
+                    TASKS_MOCK.filter(
+                        (t) =>
+                            statuses[t.status] === "Completed" &&
+                            new Date(t.deadline) >= s &&
+                            new Date(t.deadline) <= e
+                    ).length
+                );
+                overdue.push(
+                    TASKS_MOCK.filter(
+                        (t) =>
+                            statuses[t.status] !== "Completed" &&
+                            new Date(t.deadline) >= s &&
+                            new Date(t.deadline) <= e &&
+                            new Date(t.deadline) < now
+                    ).length
+                );
+            }
+            return { labels, completed, overdue };
+        }
+
+        // quarter
+        const labels: string[] = [];
+        const completed: number[] = [];
+        const overdue: number[] = [];
+        for (let i = 5; i >= 0; i--) {
+            const ref = new Date(selectedDate);
+            ref.setMonth(ref.getMonth() - i * 3);
+            const [s, e] = getPeriodRange("quarter", ref);
+            const qNum = Math.floor(ref.getMonth() / 3) + 1;
+            labels.push(`Q${qNum}'${String(ref.getFullYear()).slice(2)}`);
+            completed.push(
+                TASKS_MOCK.filter(
+                    (t) =>
+                        statuses[t.status] === "Completed" &&
+                        new Date(t.deadline) >= s &&
+                        new Date(t.deadline) <= e
+                ).length
+            );
+            overdue.push(
+                TASKS_MOCK.filter(
+                    (t) =>
+                        statuses[t.status] !== "Completed" &&
+                        new Date(t.deadline) >= s &&
+                        new Date(t.deadline) <= e &&
+                        new Date(t.deadline) < now
+                ).length
+            );
+        }
+        return { labels, completed, overdue };
+    }, [period, selectedDate]);
+
+    // ── Chart configs ──────────────────────────────────────────────────────────
+
+    const barChartData = {
+        labels: computedBarData.labels,
         datasets: [
             {
                 label: "Completed",
-                data: WEEKLY_TASKS.completed,
+                data: computedBarData.completed,
                 backgroundColor: "rgba(52,211,153,0.85)",
                 borderRadius: 6,
                 borderSkipped: false,
@@ -216,7 +428,7 @@ export default function AnalyticPage() {
             },
             {
                 label: "Created",
-                data: WEEKLY_TASKS.created,
+                data: computedBarData.created,
                 backgroundColor: "rgba(99,102,241,0.5)",
                 borderRadius: 6,
                 borderSkipped: false,
@@ -229,7 +441,16 @@ export default function AnalyticPage() {
         ...chartDefaults,
         plugins: {
             ...chartDefaults.plugins,
-            legend: { display: true, labels: { color: tickColor, boxWidth: 10, boxHeight: 10, borderRadius: 4, useBorderRadius: true } },
+            legend: {
+                display: true,
+                labels: {
+                    color: tickColor,
+                    boxWidth: 10,
+                    boxHeight: 10,
+                    borderRadius: 4,
+                    useBorderRadius: true,
+                },
+            },
         },
         scales: {
             x: { grid: { color: gridColor }, ticks: { color: tickColor } },
@@ -237,12 +458,12 @@ export default function AnalyticPage() {
         },
     };
 
-    const lineData = {
-        labels: MONTHLY_TREND.labels,
+    const lineChartData = {
+        labels: computedLineData.labels,
         datasets: [
             {
                 label: "Completed",
-                data: MONTHLY_TREND.completed,
+                data: computedLineData.completed,
                 borderColor: "#34d399",
                 backgroundColor: "rgba(52,211,153,0.08)",
                 borderWidth: 2,
@@ -253,7 +474,7 @@ export default function AnalyticPage() {
             },
             {
                 label: "Overdue",
-                data: MONTHLY_TREND.overdue,
+                data: computedLineData.overdue,
                 borderColor: "#f87171",
                 backgroundColor: "rgba(248,113,113,0.05)",
                 borderWidth: 2,
@@ -269,7 +490,16 @@ export default function AnalyticPage() {
         ...chartDefaults,
         plugins: {
             ...chartDefaults.plugins,
-            legend: { display: true, labels: { color: tickColor, boxWidth: 10, boxHeight: 10, borderRadius: 4, useBorderRadius: true } },
+            legend: {
+                display: true,
+                labels: {
+                    color: tickColor,
+                    boxWidth: 10,
+                    boxHeight: 10,
+                    borderRadius: 4,
+                    useBorderRadius: true,
+                },
+            },
         },
         scales: {
             x: { grid: { color: gridColor }, ticks: { color: tickColor } },
@@ -278,10 +508,12 @@ export default function AnalyticPage() {
     };
 
     const priorityDoughnut = {
-        labels: PRIORITY_DATA.labels,
+        labels: priorities,
         datasets: [
             {
-                data: PRIORITY_DATA.values,
+                data: priorities.map(
+                    (p) => tasksInRange.filter((t) => priorities[t.priority] === p).length
+                ),
                 backgroundColor: ["#f87171", "#fbbf24", "#34d399"],
                 borderColor: "#0d0d0d",
                 borderWidth: 3,
@@ -291,16 +523,13 @@ export default function AnalyticPage() {
     };
 
     const statusDoughnut = {
-        labels: STATUS_DATA.labels,
+        labels: statuses,
         datasets: [
             {
-                data: STATUS_DATA.values,
-                backgroundColor: [
-                    "#71717a", // Pending
-                    "#60a5fa", // In Progress
-                    "#fbbf24", // In Review
-                    "#34d399", // Completed
-                ],
+                data: statuses.map(
+                    (s) => tasksInRange.filter((t) => statuses[t.status] === s).length
+                ),
+                backgroundColor: ["#71717a", "#60a5fa", "#fbbf24", "#34d399"],
                 borderColor: "#0d0d0d",
                 borderWidth: 3,
                 hoverOffset: 6,
@@ -316,12 +545,20 @@ export default function AnalyticPage() {
             legend: {
                 display: true,
                 position: "bottom" as const,
-                labels: { color: tickColor, boxWidth: 10, boxHeight: 10, borderRadius: 4, useBorderRadius: true, padding: 12 },
+                labels: {
+                    color: tickColor,
+                    boxWidth: 10,
+                    boxHeight: 10,
+                    borderRadius: 4,
+                    useBorderRadius: true,
+                    padding: 12,
+                },
             },
         },
     };
 
     // ── Activity helpers ───────────────────────────────────────────────────────
+
     const activityDot: Record<string, string> = {
         completed: "bg-emerald-400",
         created: "bg-blue-400",
@@ -334,6 +571,24 @@ export default function AnalyticPage() {
         overdue: "text-red-400",
         review: "text-violet-400",
     };
+
+    // ── Bar chart title theo period ────────────────────────────────────────────
+
+    const barChartTitle =
+        period === "week"
+            ? "Weekly Task Activity"
+            : period === "month"
+            ? "Monthly Task Activity"
+            : "Quarterly Task Activity";
+
+    const barChartSub =
+        period === "week"
+            ? "Created vs completed this week"
+            : period === "month"
+            ? "Created vs completed by week this month"
+            : "Created vs completed by month this quarter";
+
+    // ── Render ─────────────────────────────────────────────────────────────────
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] px-7 py-7 font-sans">
@@ -350,28 +605,27 @@ export default function AnalyticPage() {
                     </p>
                 </div>
 
-                {/* Period switcher */}
+                {/* Period switcher + date picker */}
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-0.5 rounded-xl border border-white/8 bg-[#1a1a1a] p-1">
                         {(["week", "month", "quarter"] as PeriodKey[]).map((p) => (
                             <button
                                 key={p}
-                                onClick={() => setPeriod(p)}
-                                className={`rounded-[9px] px-3.5 py-1.5 text-xs font-medium capitalize transition-all ${period === p
-                                    ? "bg-white text-black"
-                                    : "text-zinc-500 hover:text-zinc-300"
-                                    }`}
+                                onClick={() => handlePeriodChange(p)}
+                                className={`rounded-[9px] px-3.5 py-1.5 text-xs font-medium capitalize transition-all ${
+                                    period === p
+                                        ? "bg-white text-black"
+                                        : "text-zinc-500 hover:text-zinc-300"
+                                }`}
                             >
                                 {p}
                             </button>
                         ))}
                     </div>
 
-                    {/* date picker */}
-
                     <div className="flex items-center rounded-xl border border-white/8 bg-[#1a1a1a] px-1 py-1">
                         <button
-                            onClick={() => changeMonth("prev")}
+                            onClick={() => changeDate("prev")}
                             className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white"
                         >
                             <ChevronLeft size={14} />
@@ -380,15 +634,12 @@ export default function AnalyticPage() {
                         <div className="flex items-center gap-2 px-3">
                             <Calendar size={12} className="text-zinc-500" />
                             <span className="text-xs font-medium text-zinc-300">
-                                {selectedDate.toLocaleDateString("en-US", {
-                                    month: "long",
-                                    year: "numeric",
-                                })}
+                                {getDateLabel(period, selectedDate)}
                             </span>
                         </div>
 
                         <button
-                            onClick={() => changeMonth("next")}
+                            onClick={() => changeDate("next")}
                             className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white"
                         >
                             <ChevronRight size={14} />
@@ -407,12 +658,15 @@ export default function AnalyticPage() {
                             className="group rounded-2xl border border-white/5 bg-[#141414] p-4 transition-all hover:border-white/10 hover:bg-[#181818]"
                         >
                             <div className="mb-3 flex items-center justify-between">
-                                <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${kpi.bg}`}>
+                                <div
+                                    className={`flex h-8 w-8 items-center justify-center rounded-xl ${kpi.bg}`}
+                                >
                                     <Icon size={15} className={kpi.color} />
                                 </div>
                                 <span
-                                    className={`flex items-center gap-0.5 text-[11px] font-medium ${kpi.up ? "text-emerald-400" : "text-red-400"
-                                        }`}
+                                    className={`flex items-center gap-0.5 text-[11px] font-medium ${
+                                        kpi.up ? "text-emerald-400" : "text-red-400"
+                                    }`}
                                 >
                                     {kpi.up ? (
                                         <ArrowUpRight size={12} />
@@ -435,35 +689,48 @@ export default function AnalyticPage() {
             {/* ── Row 1: Bar + Line ─────────────────────────────────────────────── */}
             <div className="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
 
-                {/* Bar — weekly tasks */}
+                {/* Bar */}
                 <div className="rounded-2xl border border-white/5 bg-[#141414] p-5">
                     <div className="mb-4 flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-white">Weekly Task Activity</p>
-                            <p className="mt-0.5 text-xs text-zinc-600">Created vs completed this week</p>
+                            <p className="text-sm font-medium text-white">{barChartTitle}</p>
+                            <p className="mt-0.5 text-xs text-zinc-600">{barChartSub}</p>
                         </div>
                         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-400/10">
                             <Activity size={14} className="text-indigo-400" />
                         </div>
                     </div>
                     <div className="h-52">
-                        <Bar data={barData} options={barOptions} />
+                        <Bar data={barChartData} options={barOptions} />
                     </div>
                 </div>
 
-                {/* Line — monthly trend */}
+                {/* Line */}
                 <div className="rounded-2xl border border-white/5 bg-[#141414] p-5">
                     <div className="mb-4 flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-white">Monthly Completion Trend</p>
-                            <p className="mt-0.5 text-xs text-zinc-600">Completed vs overdue over 6 months</p>
+                            <p className="text-sm font-medium text-white">
+                                {period === "week"
+                                    ? "6-Week Completion Trend"
+                                    : period === "month"
+                                    ? "6-Month Completion Trend"
+                                    : "6-Quarter Completion Trend"}
+                            </p>
+                            <p className="mt-0.5 text-xs text-zinc-600">
+                                Completed vs overdue over last 6{" "}
+                                {period === "week"
+                                    ? "weeks"
+                                    : period === "month"
+                                    ? "months"
+                                    : "quarters"}
+                            </p>
                         </div>
                         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-400/10">
                             <TrendingUp size={14} className="text-emerald-400" />
                         </div>
                     </div>
                     <div className="h-52">
-                        <Line data={lineData} options={lineOptions} />
+                        <Line data={lineChartData} options={lineOptions} />
                     </div>
                 </div>
             </div>
@@ -473,27 +740,20 @@ export default function AnalyticPage() {
 
                 {/* Doughnuts */}
                 <div className="flex flex-col gap-5">
-
-                    {/* Priority breakdown */}
                     <div className="flex-1 rounded-2xl border border-white/5 bg-[#141414] p-5">
-                        <div className="mb-3 flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-white">By Priority</p>
-                                <p className="mt-0.5 text-xs text-zinc-600">Distribution of open tasks</p>
-                            </div>
+                        <div className="mb-3">
+                            <p className="text-sm font-medium text-white">By Priority</p>
+                            <p className="mt-0.5 text-xs text-zinc-600">Distribution of tasks in period</p>
                         </div>
                         <div className="flex items-center justify-center" style={{ height: 180 }}>
                             <Doughnut data={priorityDoughnut} options={doughnutOptions} />
                         </div>
                     </div>
 
-                    {/* Status breakdown */}
                     <div className="flex-1 rounded-2xl border border-white/5 bg-[#141414] p-5">
-                        <div className="mb-3 flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-white">By Status</p>
-                                <p className="mt-0.5 text-xs text-zinc-600">All tasks current state</p>
-                            </div>
+                        <div className="mb-3">
+                            <p className="text-sm font-medium text-white">By Status</p>
+                            <p className="mt-0.5 text-xs text-zinc-600">Tasks current state in period</p>
                         </div>
                         <div className="flex items-center justify-center" style={{ height: 180 }}>
                             <Doughnut data={statusDoughnut} options={doughnutOptions} />
@@ -517,32 +777,35 @@ export default function AnalyticPage() {
                         {TOP_PROJECTS.map((proj) => (
                             <div key={proj.name}>
                                 <div className="mb-1.5 flex items-center justify-between">
-                                    <p className="text-sm text-zinc-300 truncate max-w-[65%]">{proj.name}</p>
+                                    <p className="text-sm text-zinc-300 truncate max-w-[65%]">
+                                        {proj.name}
+                                    </p>
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs text-zinc-600">
                                             {proj.completed}/{proj.tasks}
                                         </span>
                                         <span
-                                            className={`text-xs font-medium ${proj.progress === 100
-                                                ? "text-emerald-400"
-                                                : proj.progress < 25
+                                            className={`text-xs font-medium ${
+                                                proj.progress === 100
+                                                    ? "text-emerald-400"
+                                                    : proj.progress < 25
                                                     ? "text-red-400"
                                                     : "text-zinc-300"
-                                                }`}
+                                            }`}
                                         >
                                             {proj.progress}%
                                         </span>
                                     </div>
                                 </div>
-                                {/* Progress bar */}
                                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
                                     <div
-                                        className={`h-full rounded-full transition-all ${proj.progress === 100
-                                            ? "bg-emerald-400"
-                                            : proj.progress < 25
+                                        className={`h-full rounded-full transition-all ${
+                                            proj.progress === 100
+                                                ? "bg-emerald-400"
+                                                : proj.progress < 25
                                                 ? "bg-red-400"
                                                 : "bg-indigo-400"
-                                            }`}
+                                        }`}
                                         style={{ width: `${proj.progress}%` }}
                                     />
                                 </div>
@@ -553,30 +816,22 @@ export default function AnalyticPage() {
                     {/* Summary row */}
                     <div className="mt-5 flex items-center justify-between rounded-xl border border-white/5 bg-[#1a1a1a] px-4 py-3">
                         <div className="text-center">
-                            <p className="text-base font-semibold text-white">
-                                {totalTasks}
-                            </p>
+                            <p className="text-base font-semibold text-white">{totalTasks}</p>
                             <p className="text-[10px] text-zinc-600">Total tasks</p>
                         </div>
                         <div className="h-8 w-px bg-white/5" />
                         <div className="text-center">
-                            <p className="text-base font-semibold text-emerald-400">
-                                {completedTasks}
-                            </p>
+                            <p className="text-base font-semibold text-emerald-400">{completedTasks}</p>
                             <p className="text-[10px] text-zinc-600">Done</p>
                         </div>
                         <div className="h-8 w-px bg-white/5" />
                         <div className="text-center">
-                            <p className="text-base font-semibold text-blue-400 ">
-                                {inProgressTasks}
-                            </p>
+                            <p className="text-base font-semibold text-blue-400">{inProgressTasks}</p>
                             <p className="text-[10px] text-zinc-600">Active</p>
                         </div>
                         <div className="h-8 w-px bg-white/5" />
                         <div className="text-center">
-                            <p className="text-base font-semibold text-red-400">
-                                {overdueTasks}
-                            </p>
+                            <p className="text-base font-semibold text-red-400">{overdueTasks}</p>
                             <p className="text-[10px] text-zinc-600">Overdue</p>
                         </div>
                     </div>
@@ -600,11 +855,15 @@ export default function AnalyticPage() {
                                 key={idx}
                                 className="flex items-start gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-white/4"
                             >
-                                {/* Timeline dot */}
                                 <div className="mt-1.5 flex flex-col items-center">
-                                    <div className={`h-2 w-2 flex-shrink-0 rounded-full ${activityDot[item.type]}`} />
+                                    <div
+                                        className={`h-2 w-2 flex-shrink-0 rounded-full ${activityDot[item.type]}`}
+                                    />
                                     {idx < RECENT_ACTIVITY.length - 1 && (
-                                        <div className="mt-1 w-px flex-1 bg-white/5" style={{ height: 20 }} />
+                                        <div
+                                            className="mt-1 w-px flex-1 bg-white/5"
+                                            style={{ height: 20 }}
+                                        />
                                     )}
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -629,7 +888,8 @@ export default function AnalyticPage() {
                     <div>
                         <p className="text-sm font-medium text-emerald-300">Great momentum!</p>
                         <p className="mt-0.5 text-xs text-zinc-600">
-                            Completion rate up <span className="text-emerald-400 font-medium">6%</span> from last month.
+                            Completion rate up{" "}
+                            <span className="text-emerald-400 font-medium">6%</span> from last period.
                         </p>
                     </div>
                 </div>
@@ -641,7 +901,8 @@ export default function AnalyticPage() {
                     <div>
                         <p className="text-sm font-medium text-amber-300">Watch out</p>
                         <p className="mt-0.5 text-xs text-zinc-600">
-                            <span className="text-amber-400 font-medium">3 projects</span> at risk of falling behind.
+                            <span className="text-amber-400 font-medium">3 projects</span> at risk of
+                            falling behind.
                         </p>
                     </div>
                 </div>
@@ -653,12 +914,12 @@ export default function AnalyticPage() {
                     <div>
                         <p className="text-sm font-medium text-violet-300">Peak day: Thursday</p>
                         <p className="mt-0.5 text-xs text-zinc-600">
-                            Avg <span className="text-violet-400 font-medium">8 tasks</span> completed on Thursdays.
+                            Avg <span className="text-violet-400 font-medium">8 tasks</span> completed
+                            on Thursdays.
                         </p>
                     </div>
                 </div>
             </div>
-
         </div>
     );
 }

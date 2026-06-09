@@ -1,11 +1,12 @@
 import { CheckCircle2, Clock3 } from "lucide-react";
 import CustomSelect from "../Ui/CustomSelect";
 import type { Task } from "../../types/Task";
+import { priorities, statuses } from "../../../constants/taskOption";
 interface TaskRowProps {
     task: Task
     onView: (task: Task) => void;
-    onPriorityChange: (id: number, value: string) => void
-    onStatusChange: (id: number, value: string) => void
+    onPriorityChange: (id: string, value: number) => void
+    onStatusChange: (id: string, value: number) => void
 }
 
 export default function TaskRow({
@@ -42,9 +43,9 @@ export default function TaskRow({
             {/* Priority */}
             <div className="col-span-2 flex items-center">
                 <CustomSelect
-                    value={task.priority}
+                    value={priorities[task.priority]}
                     onChange={(value) =>
-                        onPriorityChange(task.id, value)
+                        onPriorityChange(task.id, priorities.indexOf(value))
                     }
                     type="priority"
                     options={[
@@ -58,9 +59,9 @@ export default function TaskRow({
             {/* Status */}
             <div className="col-span-2 flex items-center">
                 <CustomSelect
-                    value={task.status}
+                    value={statuses[task.status]}
                     onChange={(value) =>
-                        onStatusChange(task.id, value)
+                        onStatusChange(task.id, statuses.indexOf(value))
                     }
                     type="status"
                     options={[
@@ -76,7 +77,7 @@ export default function TaskRow({
             <div className="col-span-2 flex items-center text-zinc-400">
                 <div className="flex items-center gap-2">
                     <Clock3 size={16} />
-                    {task.due}
+                    {task.deadline}
                 </div>
             </div>
 

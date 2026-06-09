@@ -1,12 +1,14 @@
-import { MEETING_TIMES } from "../../mocks/calendarMock";
+import { TaskStatus } from "../../constants/taskOption";
+// import { MEETING_TIMES } from "../../mocks/calendarMock";
 import type { CalendarEvent } from "../types/Calendar";
+import type { Meeting } from "../types/Meeting";
 import type { Project } from "../types/Project";
 import type { Task } from "../types/Task";
 
 export function deriveCalendarEvents(
     projects: Project[],
     tasks: Task[],
-    meetings: Task[],
+    meetings: Meeting[],
 ): CalendarEvent[] {
     const events: CalendarEvent[] = [];
     const today = new Date();
@@ -15,7 +17,7 @@ export function deriveCalendarEvents(
     // Project deadline → milestone hoặc overdue
     for (const project of projects) {
         if (project.status === "archived") continue;
-        const dueDate  = new Date(project.due);
+        const dueDate = new Date(project.due);
         const isOverdue = project.overdue || (dueDate < today && project.status !== "completed");
         events.push({
             id:         `project-${project.id}`,
@@ -29,12 +31,13 @@ export function deriveCalendarEvents(
 
     // Task deadline → task
     for (const task of tasks) {
-        if (task.status === "done") continue;
+        if (task.status === TaskStatus.Completed) continue;
+        if (!task.deadline) continue;
         events.push({
             id:         `task-${task.id}`,
             title:      task.title,
             type:       "task",
-            date:       task.due,
+            date:       task.deadline,
             sourceType: "task",
             sourceId:   task.id,
         });
@@ -43,13 +46,13 @@ export function deriveCalendarEvents(
     // Meetings
     for (const meeting of meetings) {
         events.push({
-            id:         `meeting-${meeting.id}`,
-            title:      meeting.title,
-            type:       "meeting",
-            time:       MEETING_TIMES[meeting.id],
-            date:       meeting.due,
-            sourceType: "task",
-            sourceId:   meeting.id,
+            id: `meeting-${meeting.id}`,
+            title: meeting.title,
+            type: "meeting",
+            date: meeting.date,
+            time: meeting.time,
+            sourceType: "meeting",
+            sourceId: meeting.id,
         });
     }
 

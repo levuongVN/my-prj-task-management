@@ -22,7 +22,7 @@ import {
 
 const PROJECTS: Project[] = [
     {
-        id: 1,
+        id: "1",
         name: "TaskFlow Redesign",
         description: "Overhaul UI across all core screens to match new design system.",
         progress: 72,
@@ -31,7 +31,7 @@ const PROJECTS: Project[] = [
         taskIds: [],
     },
     {
-        id: 2,
+        id: "2",
         name: "API Integration",
         description: "Connect third-party services and build webhook endpoints.",
         progress: 40,
@@ -41,7 +41,7 @@ const PROJECTS: Project[] = [
         taskIds: [],
     },
     {
-        id: 3,
+        id: "3",
         name: "Analytics Dashboard",
         description: "Build reporting views for task completion and team velocity.",
         progress: 18,
@@ -50,7 +50,7 @@ const PROJECTS: Project[] = [
         taskIds: [],
     },
     {
-        id: 4,
+        id: "4",
         name: "User Onboarding V2",
         description: "Redesigned step-by-step flow for new sign-ups on mobile.",
         progress: 100,
@@ -59,7 +59,7 @@ const PROJECTS: Project[] = [
         taskIds: [],
     },
     {
-        id: 5,
+        id: "5",
         name: "Auth Refactor",
         description: "Migrated auth system to JWT with refresh token rotation.",
         progress: 100,
@@ -68,7 +68,7 @@ const PROJECTS: Project[] = [
         taskIds: [],
     },
     {
-        id: 6,
+        id: "6",
         name: "Legacy Import Tool",
         description: "CSV importer for old task data — replaced by new pipeline.",
         progress: 55,
