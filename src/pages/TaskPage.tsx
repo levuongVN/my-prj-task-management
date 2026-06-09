@@ -47,7 +47,7 @@ const initialTasks = [
         status: "In Review",
         due: "Jun 02",
     },
-];
+] as Task[];
 
 export default function TaskPage() {
     const [tasks, setTasks] = useState(initialTasks);

@@ -12,17 +12,63 @@ export const MOCK_PROJECTS: Project[] = [
     { id: 6, name: "Legacy Import Tool",  status: "archived",  due: "2026-01-15", progress: 55,  overdue: false, taskIds: [] },
 ];
 
-export const MOCK_TASKS: Task[] = [
-    { id: 1,  title: "API docs",        status: "in-progress", due: "2026-06-04", priority: "medium" },
-    { id: 2,  title: "Review PR",       status: "todo",        due: "2026-06-05", priority: "low"    },
-    { id: 3,  title: "Fix auth bug",    status: "in-progress", due: "2026-06-10", priority: "high"   },
-    { id: 4,  title: "v1.2 release",    status: "todo",        due: "2026-06-09", priority: "high"   },
-    { id: 5,  title: "Analytics UI",    status: "todo",        due: "2026-06-16", priority: "medium" },
-    { id: 6,  title: "Write tests",     status: "todo",        due: "2026-06-16", priority: "medium" },
-    { id: 7,  title: "Deploy script",   status: "todo",        due: "2026-06-16", priority: "low"    },
-    { id: 8,  title: "Onboarding flow", status: "in-progress", due: "2026-06-12", priority: "high"   },
-    { id: 9,  title: "Perf audit",      status: "todo",        due: "2026-06-23", priority: "medium" },
-    { id: 10, title: "Deploy v1.3",     status: "todo",        due: "2026-06-29", priority: "high"   },
+export const TASKS_MOCK: Task[] = [
+    {
+        id: 1,
+        title: "Design landing page",
+        status: "Completed",
+        due: "2026-06-01",
+        priority: "High",
+    },
+    {
+        id: 2,
+        title: "Implement login",
+        status: "In Progress",
+        due: "2026-06-10",
+        priority: "High",
+    },
+    {
+        id: 3,
+        title: "Create dashboard",
+        status: "In Review",
+        due: "2026-06-12",
+        priority: "Medium",
+    },
+    {
+        id: 4,
+        title: "Fix refresh token",
+        status: "Pending",
+        due: "2026-06-05",
+        priority: "High",
+    },
+    {
+        id: 5,
+        title: "Mobile responsive",
+        status: "Completed",
+        due: "2026-06-03",
+        priority: "Medium",
+    },
+    {
+        id: 6,
+        title: "Analytics page",
+        status: "In Progress",
+        due: "2026-06-15",
+        priority: "Low",
+    },
+    {
+        id: 7,
+        title: "Setup CI/CD",
+        status: "Pending",
+        due: "2026-06-18",
+        priority: "Medium",
+    },
+    {
+        id: 8,
+        title: "Dark mode polish",
+        status: "Completed",
+        due: "2026-06-02",
+        priority: "Low",
+    },
 ];
 
 // Meeting tạm dùng Task shape — sẽ tách Meeting type riêng khi có API

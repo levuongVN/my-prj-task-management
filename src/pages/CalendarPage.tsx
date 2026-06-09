@@ -10,7 +10,7 @@ import { deriveCalendarEvents } from "../shared/utils/deriveCalendarEvents";
 import Modal from "../shared/components/Ui/Modal";
 import EventForm from "../shared/components/calendar/eventForm";
 import { MONTH_NAMES, EVENT_STYLES } from "../constants/calendarConst";
-import { MOCK_PROJECTS, MOCK_TASKS, MOCK_MEETINGS } from "../mocks/calendarMock";
+import { MOCK_PROJECTS, MOCK_MEETINGS, TASKS_MOCK } from "../mocks/calendarMock";
 import { FormProvider, useForm } from "react-hook-form";
 import { eventSchema, type EventFormValues } from "../features/calendar/schemals/event.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,7 +40,12 @@ export default function CalendarPage() {
         },
     });
 
-    const allEvents = deriveCalendarEvents(MOCK_PROJECTS, MOCK_TASKS, MOCK_MEETINGS);
+function handleSubmit(data: EventFormValues) {
+    console.log("New event data:", data);
+    setIsModalOpen(false);
+}
+
+    const allEvents = deriveCalendarEvents(MOCK_PROJECTS, TASKS_MOCK, MOCK_MEETINGS);
 
     const [, , dayStr] = selectedDate.split("-");
     const selectedDayNum = parseInt(dayStr, 10);
@@ -211,7 +216,7 @@ export default function CalendarPage() {
                 submitText="Create"
             >
                 <FormProvider {...eventForm}>
-                    <EventForm></EventForm>
+                    <EventForm onSubmit={handleSubmit} />
                 </FormProvider>
             </Modal>
         </div>

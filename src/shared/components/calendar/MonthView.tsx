@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { CalendarEvent } from "../../../shared/types/Calendar";
 import { DAYS_OF_WEEK } from "../../../constants/calendarConst";
 import { buildMonthDays } from "../../utils/dateHelper";
-import EventPill from "./EventPill.tsx";
+import EventPill from "./EventPill";
 
 interface Props {
     year: number;
@@ -57,7 +57,9 @@ export default function MonthView({ year, month, allEvents, todayDate, onDayClic
                                 {day}
                             </div>
                             <div className="space-y-0.5">
+                                
                                 {visibleEvents.map((event) => <EventPill key={event.id} event={event} />)}
+
                                 {hiddenCount > 0 && (
                                     <p className="px-1 text-[10px] text-zinc-600">+{hiddenCount} more</p>
                                 )}
