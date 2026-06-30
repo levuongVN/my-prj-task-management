@@ -76,6 +76,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                                     priority: priorities.indexOf(data.priority),
                                     status: statuses.indexOf(data.status),
                                     deadline: new Date(data.due).toISOString(),
+                                    projectId: data.projectId || null,
                                 },
                             },
                             {

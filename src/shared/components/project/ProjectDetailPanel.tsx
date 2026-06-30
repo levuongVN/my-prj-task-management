@@ -1,6 +1,7 @@
 import { X, Pencil, Trash2, CalendarDays, BarChart2, Clock, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import type { Project } from "../../types/Project";
+import { useTaskByProjectId } from "../../../features/task/hooks/useTaskByProjectId";
 
 const STATUS_LABEL: Record<number, string> = { 0: "Active", 1: "Completed", 2: "Archived" };
 const STATUS_COLOR: Record<number, string> = {
@@ -32,6 +33,10 @@ export default function ProjectDetailPanel({
     onViewTasks
 }: ProjectDetailPanelProps) {
     const [confirmDelete, setConfirmDelete] = useState(false);
+
+    const { data: tasks = [], isLoading: isLoadingTasks } = useTaskByProjectId(
+        isOpen ? project?.id : undefined
+    );
 
     // Reset confirm state khi đóng panel
     const handleClose = () => {
@@ -167,7 +172,7 @@ export default function ProjectDetailPanel({
                         </div>
 
                         <div
-                            onClick={() => onViewTasks(project)}
+                            onClick={() => onViewTasks?.(project)}
                             className="
                                 rounded-xl border border-white/6 bg-white/3 px-4 py-3
                                 cursor-pointer
@@ -184,7 +189,7 @@ export default function ProjectDetailPanel({
                             </div>
 
                             <p className="text-sm font-medium text-zinc-200">
-                                {project.taskIds?.length ?? 0}
+                                {isLoadingTasks ? "—" : tasks.length}
                             </p>
                         </div>
                     </div>

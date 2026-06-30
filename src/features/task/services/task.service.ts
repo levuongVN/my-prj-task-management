@@ -24,3 +24,8 @@ export const updateTask = async function (payload: updateTaskPayload) {
 export const deleteTask = async function (id: string) {
     await api.delete(`/tasks/${id}`);
 };
+
+export const getTasksByProject = async function (projectId: string) {
+    const response = await api.get<TaskResponse[]>(`/tasks/project/${projectId}`);
+    return response.data;
+};
