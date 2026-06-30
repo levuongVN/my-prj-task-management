@@ -5,13 +5,10 @@ import Button from "../Ui/Button";
 
 interface Props {
     onSubmit: (data: ProjectFormValues) => void;
+    isEdit?: boolean;
 }
 
-export default function ProjectForm(
-    {
-        onSubmit,
-    }: Props
-) {
+export default function ProjectForm({ onSubmit, isEdit }: Props) {
     const {
         register,
         control,
@@ -56,43 +53,57 @@ export default function ProjectForm(
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-                {/* Date field */}
-                <div className="flex flex-col gap-1">
+                {/* Due */}
+                <div className="flex flex-col gap-2">
+                    <label className="text-sm text-zinc-400">
+                        Due Date
+                    </label>
+
                     <input
                         type="date"
                         {...register("due")}
-                        className="text-white rounded-2xl border border-white/50 bg-black px-4 py-3"
+                        className="rounded-2xl border border-white/50 bg-black px-4 py-3 text-white"
                     />
+
                     {errors.due && (
-                        <p className="text-sm text-red-500">{errors.due.message}</p>
+                        <p className="text-sm text-red-500">
+                            {errors.due.message}
+                        </p>
                     )}
                 </div>
 
-                {/* Status field */}
-                <div className="flex flex-col gap-1">
+                {/* Status */}
+                <div className="flex flex-col gap-2">
+                    <label className="text-sm text-zinc-400">
+                        Status
+                    </label>
+
                     <Controller
                         name="status"
                         control={control}
                         render={({ field }) => (
                             <CustomSelect
                                 options={[
-                                    { label: "Active", value: "active" },
-                                    { label: "Completed", value: "completed" },
-                                    { label: "Archived", value: "archived" },
+                                    { label: "Active", value: "Active" },
+                                    { label: "Completed", value: "Completed" },
+                                    { label: "Archived", value: "Archived" },
                                 ]}
                                 value={field.value}
                                 onChange={field.onChange}
                             />
                         )}
                     />
+
                     {errors.status && (
-                        <p className="text-sm text-red-500">{errors.status.message}</p>
+                        <p className="text-sm text-red-500">
+                            {errors.status.message}
+                        </p>
                     )}
                 </div>
             </div>
 
             <Button className="w-full bg-blue-500 text-white py-3 rounded-2xl hover:bg-blue-600 transition-colors" variant="ghost" type="submit">
-                Create Project
+                {isEdit ? "Update Project" : "Create Project"}
             </Button>
         </form>
     );

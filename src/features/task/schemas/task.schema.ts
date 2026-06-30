@@ -23,6 +23,8 @@ export const createTaskSchema = z.object({
     ]),
 
     due: z.string().min(1, "Due date is required"),
+
+    projectId: z.string().optional(),
 });
 
 export type CreateTaskFormValues = z.infer<typeof createTaskSchema>;

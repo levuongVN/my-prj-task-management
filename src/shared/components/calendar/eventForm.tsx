@@ -19,7 +19,7 @@ export default function EventForm(
     const { register, control, handleSubmit } = useFormContext<EventFormValues>();
     const { errors } = useFormState<EventFormValues>();
 
-    const activeProjects = MOCK_PROJECTS.filter((p) => p.status === "active");
+    const activeProjects = MOCK_PROJECTS.filter((p) => p.status === 0); // 0 = active
 
     return (
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>

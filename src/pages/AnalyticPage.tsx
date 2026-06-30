@@ -266,6 +266,7 @@ export default function AnalyticPage() {
             const labels: string[] = [];
             const completed: number[] = [];
             const created: number[] = [];
+            // eslint-disable-next-line prefer-const
             let cursor = new Date(start);
             let w = 1;
             while (cursor <= end) {
@@ -365,6 +366,7 @@ export default function AnalyticPage() {
                     TASKS_MOCK.filter(
                         (t) =>
                             statuses[t.status] === "Completed" &&
+                            t.deadline &&
                             new Date(t.deadline) >= s &&
                             new Date(t.deadline) <= e
                     ).length
@@ -373,6 +375,7 @@ export default function AnalyticPage() {
                     TASKS_MOCK.filter(
                         (t) =>
                             statuses[t.status] !== "Completed" &&
+                            t.deadline &&
                             new Date(t.deadline) >= s &&
                             new Date(t.deadline) <= e &&
                             new Date(t.deadline) < now
@@ -396,6 +399,7 @@ export default function AnalyticPage() {
                 TASKS_MOCK.filter(
                     (t) =>
                         statuses[t.status] === "Completed" &&
+                        t.deadline &&
                         new Date(t.deadline) >= s &&
                         new Date(t.deadline) <= e
                 ).length
@@ -404,6 +408,7 @@ export default function AnalyticPage() {
                 TASKS_MOCK.filter(
                     (t) =>
                         statuses[t.status] !== "Completed" &&
+                        t.deadline &&
                         new Date(t.deadline) >= s &&
                         new Date(t.deadline) <= e &&
                         new Date(t.deadline) < now

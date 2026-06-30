@@ -1,18 +1,24 @@
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, type DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import CustomSelect from "../Ui/CustomSelect";
 import { createTaskSchema, type CreateTaskFormValues } from "../../../features/task/schemas/task.schema";
 import Button from "../Ui/Button";
+import type { ProjectOption } from "../project/ProjectSelect";
+import ProjectSelect from "../project/ProjectSelect";
 
 interface Props {
+    defaultValues?: DefaultValues<CreateTaskFormValues>;
     onSubmit: (
         data: CreateTaskFormValues
     ) => void;
+    projects: ProjectOption[];
 }
 
 export default function CreateTaskForm({
     onSubmit,
+    defaultValues,
+    projects,
 }: Props) {
     const {
         register,
@@ -24,12 +30,13 @@ export default function CreateTaskForm({
         resolver: zodResolver(
             createTaskSchema
         ),
-        defaultValues: {
+        defaultValues: defaultValues ?? {
             title: "",
             description: "",
             priority: "Medium",
             status: "Pending",
             due: "",
+            projectId: "",
         },
     });
     return (
@@ -99,6 +106,32 @@ export default function CreateTaskForm({
                     </p>
                 )}
             </div>
+
+            {/* Project */}
+
+            <Controller
+                control={control}
+                name="projectId"
+                render={({ field }) => (
+                    <div>
+                        <label className="mb-2 block text-sm text-zinc-400">
+                            Project
+                        </label>
+
+                        <ProjectSelect
+                            value={field.value}
+                            onChange={field.onChange}
+                            projects={projects}
+                        />
+                    </div>
+                )}
+            />
+
+            {errors.projectId && (
+                <p className="mt-2 text-sm text-red-400">
+                    {errors.projectId.message}
+                </p>
+            )}
 
             {/* Priority + Status */}
 
@@ -214,17 +247,26 @@ export default function CreateTaskForm({
                 <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => reset() }
+                    onClick={() => reset()}
                 >
                     Reset
                 </Button>
 
-                <Button
-                    type="submit"
-                    variant="secondary"
-                >
-                    Create Task
-                </Button>
+                {defaultValues ? (
+                    <Button
+                        type="submit"
+                        variant="primary"
+                    >
+                        Update Task
+                    </Button>
+                ) : (
+                    <Button
+                        type="submit"
+                        variant="primary"
+                    >
+                        Create Task
+                    </Button>
+                )}
             </div>
         </form>
     );

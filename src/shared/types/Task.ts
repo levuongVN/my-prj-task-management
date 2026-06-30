@@ -9,4 +9,5 @@ export interface Task {
     userId: string       // uuid
     createdAt: string    // timestamp
     updatedAt: string    // timestamp
+    projectId?: string | null  // uuid, nullable
 }

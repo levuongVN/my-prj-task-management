@@ -16,9 +16,9 @@ export function deriveCalendarEvents(
 
     // Project deadline → milestone hoặc overdue
     for (const project of projects) {
-        if (project.status === "archived") continue;
+        if (project.status === 2) continue; // 2 = archived
         const dueDate = new Date(project.due);
-        const isOverdue = project.overdue || (dueDate < today && project.status !== "completed");
+        const isOverdue = project.overdue || (dueDate < today && project.status !== 1); // 1 = completed
         events.push({
             id:         `project-${project.id}`,
             title:      project.name,

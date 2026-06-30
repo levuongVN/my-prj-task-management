@@ -4,10 +4,11 @@ import type { Project } from "../types/Project";
 type SortBy = "name" | "due" | "progress" | "status";
 type SortOrder = "asc" | "desc";
 
-const STATUS_ORDER: Record<Project["status"], number> = {
-    active: 1,
-    completed: 2,
-    archived: 3,
+// 0=active, 1=completed, 2=archived
+const STATUS_ORDER: Record<number, number> = {
+    0: 1,
+    1: 2,
+    2: 3,
 };
 
 const DUE_ORDER: Record<string, number> = {
@@ -23,15 +24,18 @@ function parseDue(due: string): number {
 
 export function useProjectFilters(projects: Project[]) {
     const [search, setSearch] = useState("");
-    const [selectedStatuses, setSelectedStatuses] = useState<Project["status"][]>([]);
+    const [selectedStatuses, setSelectedStatuses] = useState<number[]>([]);
     const [sortBy, setSortBy] = useState<SortBy>("due");
     const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
     const filtered = useMemo(() => {
         return projects.filter((p) => {
-            const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
+            const matchesSearch =
+                p.name.toLowerCase().includes(search.toLowerCase()) ||
+                (p.description ?? "").toLowerCase().includes(search.toLowerCase());
 
-            const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(p.status);
+            const matchesStatus =
+                selectedStatuses.length === 0 || selectedStatuses.includes(p.status);
 
             return matchesSearch && matchesStatus;
         });
@@ -66,7 +70,7 @@ export function useProjectFilters(projects: Project[]) {
         setSearch("");
     };
 
-    const toggleStatus = (status) => {
+    const toggleStatus = (status: number) => {
         setSelectedStatuses((prev) =>
             prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
         );
@@ -85,6 +89,6 @@ export function useProjectFilters(projects: Project[]) {
         clearFilters,
         result: sorted,
         isEmpty: sorted.length === 0,
-        byStatus: (s: Project["status"]) => sorted.filter((p) => p.status === s),
+        byStatus: (s: number) => sorted.filter((p) => p.status === s),
     };
 }

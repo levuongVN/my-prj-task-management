@@ -15,6 +15,7 @@ export default function TaskRow({
     onPriorityChange,
     onStatusChange,
 }: TaskRowProps) {
+    const formatDate = (date: string) => date.substring(0, 10);
     return (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 px-6 py-6 border-b border-white/5 hover:bg-white/[0.02] transition">
 
@@ -77,7 +78,7 @@ export default function TaskRow({
             <div className="col-span-2 flex items-center text-zinc-400">
                 <div className="flex items-center gap-2">
                     <Clock3 size={16} />
-                    {task.deadline}
+                    {task.deadline ? formatDate(task.deadline) : "—"}
                 </div>
             </div>
 
@@ -85,14 +86,7 @@ export default function TaskRow({
             <div className="col-span-1 flex items-center justify-end">
                 <button
                     onClick={() => onView(task)}
-                    className="
-        px-4 py-2
-        rounded-xl
-        border border-white/10
-        hover:bg-white
-        hover:text-black
-        transition
-    "
+                    className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white hover:text-black transition"
                 >
                     View
                 </button>

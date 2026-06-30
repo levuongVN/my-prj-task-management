@@ -13,3 +13,22 @@ export const TaskPriority = {
     Medium: 1,
     Low:    2,
 } as const;
+
+/**
+ * Map status number (từ API) → string label hiển thị trên UI
+ */
+export const TASK_STATUS_MAP: Record<number, string> = {
+    [TaskStatus.Pending]:    "Pending",
+    [TaskStatus.InProgress]: "In Progress",
+    [TaskStatus.InReview]:   "In Review",
+    [TaskStatus.Completed]:  "Completed",
+};
+
+/**
+ * Map priority number (từ API) → string label hiển thị trên UI
+ */
+export const TASK_PRIORITY_MAP: Record<number, string> = {
+    [TaskPriority.High]:   "High",
+    [TaskPriority.Medium]: "Medium",
+    [TaskPriority.Low]:    "Low",
+};

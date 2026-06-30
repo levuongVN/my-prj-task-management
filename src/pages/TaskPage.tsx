@@ -10,82 +10,46 @@ import Modal from "../shared/components/Ui/Modal";
 import CreateTaskForm from "../shared/components/task/CreateTaskForm";
 import FilterDropdown from "../shared/components/Ui/FilterDropdown";
 import SortDropdown from "../shared/components/Ui/SortDropdown";
-import type { Task } from "../shared/types/Task";
 import TaskDetailModal from "../shared/components/task/TaskDetailModal";
-import { priorities, statuses, TaskPriority, TaskStatus } from "../constants/taskOption";
-
-const initialTasks = [
-    {
-        id: "uuid-1",
-        title: "Design Landing Page",
-        description: "Create modern hero section for SaaS website.",
-        priority: TaskPriority.High,
-        status: TaskStatus.InProgress,
-        deadline: new Date().toISOString(),
-        position: 0,
-        userId: "user-uuid",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    },
-    {
-        id: 2,
-        title: "API Integration",
-        description: "Connect payment gateway and build webhook endpoints.",
-        priority: TaskPriority.Medium,
-        status: TaskStatus.Pending,
-        deadline: new Date().toISOString(),
-        position: 0,
-        userId: "user-uuid",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    },
-    {
-        id: 3,
-        title: "Team Meeting",
-        description: "Weekly product discussion with team.",
-        priority: TaskPriority.Low,
-        status: TaskStatus.Completed,
-        deadline: new Date().toISOString(),
-        position: 0,
-        userId: "user-uuid",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    },
-    {
-        id: 4,
-        title: "Analytics Dashboard",
-        description: "Implement charts and KPI tracking.",
-        priority: TaskPriority.High,
-        status: TaskStatus.InReview,
-        deadline: new Date().toISOString(),
-        position: 0,
-        userId: "user-uuid",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    },
-] as Task[];
+import { priorities, statuses } from "../constants/taskOption";
+import { useTasks } from "../features/task/hooks/useTask";
+import { useCreateTask } from "../features/task/hooks/useCreateTask";
+import { useUpdateTask } from "../features/task/hooks/useUpdateTask";
+import Loading from "../shared/components/Ui/Loading";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { useProjects } from "../features/project/hooks";
 
 export default function TaskPage() {
-    const [tasks, setTasks] = useState(initialTasks);
+    const {
+        data: tasks = [],
+        isLoading,
+        error,
+    } = useTasks();
+    const { data: projects = [] } = useProjects();
+    const createTaskMutation = useCreateTask();
+    const updateTaskMutation = useUpdateTask();
     const [searchTerm, setSearchTerm] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const [sortBy, setSortBy] = useState("due");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
+    const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
     const [isViewOpen, setIsViewOpen] = useState(false);
+
+    const selectedTask =
+        tasks.find((task) => task.id === selectedTaskId) ?? null;
 
     const filteredTasks = tasks.filter((task) => {
         const matchesSearch =
             task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            task.description.toLowerCase().includes(searchTerm.toLowerCase());
+            (task.description ?? "").toLowerCase().includes(searchTerm.toLowerCase());
 
-            const matchesPriority =
+        const matchesPriority =
             selectedPriorities.length === 0 ||
             selectedPriorities.includes(priorities[task.priority]);
-        
+
         const matchesStatus =
             selectedStatuses.length === 0 ||
             selectedStatuses.includes(statuses[task.status]);
@@ -118,22 +82,49 @@ export default function TaskPage() {
         }
     });
 
-    const handlePriorityChange = (id: string, value: number) => {
-        setTasks((prev) =>
-            prev.map((task) =>
-                task.id === id ? { ...task, priority: value } : task
-            )
-        );
+    const handlePriorityChange = (id: string, priority: number) => {
+        const task = tasks.find((t) => t.id === id);
+        if (!task) return;
+        updateTaskMutation.mutate({
+            id,
+            taskPayload: {
+                title: task.title,
+                description: task.description,
+                projectId: task.projectId,
+                priority,
+                status: task.status,
+                deadline: task.deadline,
+            },
+        })
     };
 
-    const handleStatusChange = (id: string, value: number) => {
-        setTasks((prev) =>
-            prev.map((task) =>
-                task.id === id ? { ...task, status: value } : task
-            )
-        );
+    const handleStatusChange = (id: string, status: number) => {
+        const task = tasks.find((t) => t.id === id);
+        if (!task) return;
+        updateTaskMutation.mutate({
+            id,
+            taskPayload: {
+                title: task.title,
+                description: task.description,
+                projectId: task.projectId,
+                priority: task.priority,
+                status,
+                deadline: task.deadline,
+            },
+        })
     };
 
+    if (isLoading) {
+        return <Loading fullScreen />;
+    }
+
+    if (error) {
+        return (
+            <div className="p-6 text-red-500">
+                Failed to load tasks
+            </div>
+        );
+    }
     return (
         <div className="min-h-screen bg-black text-white p-6">
             {/* Header */}
@@ -208,21 +199,20 @@ export default function TaskPage() {
             </div>
 
             {/* Stats */}
-            <TaskStats tasks={tasks} />
+            <TaskStats tasks={tasks.map((t) => ({ ...t, deadline: t.deadline ?? undefined }))} />
 
             {/* Task List */}
-            <div className="rounded-[32px] border border-white/5 bg-zinc-950 overflow-hidden">
+            <div className="rounded-[32px] border border-white/5 bg-zinc-950 overflow-scroll">
                 {/* Header */}
                 <TaskTableHeader />
-
                 {/* Tasks */}
                 <div>
                     {sortedTasks.map((task) => (
                         <TaskRow
                             key={task.id}
-                            task={task}
+                            task={{ ...task, deadline: task.deadline ?? undefined }}
                             onView={(task) => {
-                                setSelectedTask(task);
+                                setSelectedTaskId(task.id);
                                 setIsViewOpen(true);
                             }}
                             onPriorityChange={handlePriorityChange}
@@ -239,14 +229,50 @@ export default function TaskPage() {
                 title="Create New Task"
                 submitText="Create Task"
             >
-                <CreateTaskForm onSubmit={() => { }} />
+                <CreateTaskForm onSubmit={(data) => {
+                    createTaskMutation.mutate({
+                        title: data.title,
+                        description: data.description,
+                        priority: priorities.indexOf(data.priority),
+                        status: statuses.indexOf(data.status),
+                        deadline: new Date(data.due).toISOString(),
+                        projectId: data.projectId,
+                    },
+                        {
+                            onSuccess: () => {
+                                toast.success("Task created successfully");
+                                setIsOpen(false);
+                            },
+
+                            onError: (error) => {
+                                if (axios.isAxiosError(error)) {
+                                    toast.error(
+                                        error.response?.data?.message ??
+                                        "Failed to create task"
+                                    );
+                                    return;
+                                }
+
+                                toast.error("Unexpected error");
+                            },
+                        }
+                    );
+
+                } } 
+                projects={projects.map((project) => (
+                    {
+                        id: project.id,
+                        name: project.name,
+                    }
+                ))}
+                 />
             </Modal>
             <TaskDetailModal
                 isOpen={isViewOpen}
-                task={selectedTask}
+                task={selectedTask ? { ...selectedTask, deadline: selectedTask.deadline ?? undefined } : null}
                 onClose={() => {
                     setIsViewOpen(false);
-                    setSelectedTask(null);
+                    setSelectedTaskId(null);
                 }}
             />
         </div>

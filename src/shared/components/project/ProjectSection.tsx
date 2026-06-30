@@ -1,15 +1,17 @@
-import { STATUS_CONFIG } from "../../../constants/projectConst";
+import { PROJECT_STATUS_MAP, STATUS_CONFIG } from "../../../constants/projectConst";
 import type { Project } from "../../types/Project";
 import ProjectCard from "./ProjectCard";
 
 interface Props {
-    status: Project["status"];
+    status: number;
     projects: Project[];
+    onProjectClick?: (project: Project) => void;
 }
 
-export default function Section({ status, projects }: Props) {
+export default function Section({ status, projects, onProjectClick }: Props) {
     if (projects.length === 0) return null;
-    const cfg = STATUS_CONFIG[status];
+    const statusKey = PROJECT_STATUS_MAP[status] ?? "active";
+    const cfg = STATUS_CONFIG[statusKey];
 
     return (
         <div className="mb-7">
@@ -19,7 +21,13 @@ export default function Section({ status, projects }: Props) {
                 <span className={`rounded-full px-2 py-0.5 text-[11px] ${cfg.count}`}>{projects.length}</span>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {projects.map((p) => <ProjectCard key={p.id} project={p} />)}
+                {projects.map((p) => (
+                    <ProjectCard
+                        key={p.id}
+                        project={p}
+                        onClick={() => onProjectClick?.(p)}
+                    />
+                ))}
             </div>
         </div>
     );

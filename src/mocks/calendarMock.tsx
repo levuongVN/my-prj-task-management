@@ -106,7 +106,7 @@ export const MOCK_PROJECTS: Project[] = [
     {
       id: "1",
       name: "TaskFlow Redesign",
-      status: "active",
+      status: 0,        // 0 = active
       progress: 72,
       due: "2026-06-20",
       overdue: false,
@@ -115,7 +115,7 @@ export const MOCK_PROJECTS: Project[] = [
     {
       id: "2",
       name: "API Integration",
-      status: "active",
+      status: 0,        // 0 = active
       progress: 40,
       due: "2026-06-01",
       overdue: true,

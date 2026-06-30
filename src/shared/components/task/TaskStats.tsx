@@ -1,3 +1,4 @@
+import { statuses } from "../../../constants/taskOption"
 import type { Task } from "../../types/Task"
 
 
@@ -22,7 +23,8 @@ export default function TaskStats({ tasks }: Props) {
                 <h2 className="text-4xl font-bold mt-3 text-blue-400">
                     {
                         tasks.filter(
-                            (task) => task.status === "In Progress"
+                            (task) =>
+                                statuses[task.status] === "In Progress"
                         ).length
                     }
                 </h2>
@@ -34,7 +36,8 @@ export default function TaskStats({ tasks }: Props) {
                 <h2 className="text-4xl font-bold mt-3 text-emerald-400">
                     {
                         tasks.filter(
-                            (task) => task.status === "Completed"
+                            (task) =>
+                                statuses[task.status] === "Completed"
                         ).length
                     }
                 </h2>

@@ -7,8 +7,6 @@ import {
     ShieldCheck,
     Archive,
 } from "lucide-react";
-import type { Project } from "../shared/types/Project";
-
 export const PROJECT_ICONS: Record<number, React.ReactNode> = {
     1: <LayoutDashboard size={16} />,
     2: <Zap size={16} />,
@@ -54,6 +52,25 @@ export const STATUS_CONFIG = {
     },
 } as const;
 
+/**
+ * Map status number (từ API) → string key dùng trong STATUS_CONFIG
+ * 0 = active, 1 = completed, 2 = archived
+ */
+export const PROJECT_STATUS_MAP: Record<number, keyof typeof STATUS_CONFIG> = {
+    0: "active",
+    1: "completed",
+    2: "archived",
+};
+
+/**
+ * Map string key → number để gửi lên API
+ */
+export const PROJECT_STATUS_REVERSE: Record<keyof typeof STATUS_CONFIG, number> = {
+    active:    0,
+    completed: 1,
+    archived:  2,
+};
+
 export const SORT_OPTIONS = [
     { value: "due", label: "Due date" },
     { value: "name", label: "Name" },
@@ -61,4 +78,8 @@ export const SORT_OPTIONS = [
     { value: "status", label: "Status" },
 ] as const;
 
-export const STATUS_OPTIONS: Project["status"][] = ["active", "completed", "archived"];
+export const STATUS_OPTIONS = [
+    "active",
+    "completed",
+    "archived",
+] as const;
