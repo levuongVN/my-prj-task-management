@@ -84,9 +84,9 @@ export default function ProjectForm({ onSubmit, isEdit }: Props) {
                         render={({ field }) => (
                             <CustomSelect
                                 options={[
-                                    { label: "Active", value: "Active" },
-                                    { label: "Completed", value: "Completed" },
-                                    { label: "Archived", value: "Archived" },
+                                    { label: "Active", value: "active" },
+                                    { label: "Completed", value: "completed" },
+                                    { label: "Archived", value: "archived" },
                                 ]}
                                 value={field.value}
                                 onChange={field.onChange}

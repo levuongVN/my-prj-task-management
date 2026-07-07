@@ -1,6 +1,8 @@
 import { useState } from "react";
 import {
     Search,
+    LayoutGrid,
+    List
 } from "lucide-react";
 import TaskHeader from "../shared/components/task/TaskHeader";
 import TaskStats from "../shared/components/task/TaskStats";
@@ -11,6 +13,7 @@ import CreateTaskForm from "../shared/components/task/CreateTaskForm";
 import FilterDropdown from "../shared/components/Ui/FilterDropdown";
 import SortDropdown from "../shared/components/Ui/SortDropdown";
 import TaskDetailModal from "../shared/components/task/TaskDetailModal";
+import TaskBoard from "../shared/components/task/TaskBoard";
 import { priorities, statuses } from "../constants/taskOption";
 import { useTasks } from "../features/task/hooks/useTask";
 import { useCreateTask } from "../features/task/hooks/useCreateTask";
@@ -37,6 +40,7 @@ export default function TaskPage() {
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
     const [isViewOpen, setIsViewOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
     const selectedTask =
         tasks.find((task) => task.id === selectedTaskId) ?? null;
@@ -196,31 +200,57 @@ export default function TaskPage() {
                     onSortByChange={setSortBy}
                     onSortOrderChange={setSortOrder}
                 />
+                
+                <div className="flex bg-zinc-900 rounded-xl p-1 h-14 items-center shrink-0">
+                    <button 
+                        onClick={() => setViewMode("list")}
+                        className={`h-full px-4 rounded-lg flex items-center justify-center transition ${viewMode === "list" ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white"}`}
+                    >
+                        <List size={20} />
+                    </button>
+                    <button 
+                        onClick={() => setViewMode("board")}
+                        className={`h-full px-4 rounded-lg flex items-center justify-center transition ${viewMode === "board" ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white"}`}
+                    >
+                        <LayoutGrid size={20} />
+                    </button>
+                </div>
             </div>
 
             {/* Stats */}
             <TaskStats tasks={tasks.map((t) => ({ ...t, deadline: t.deadline ?? undefined }))} />
 
-            {/* Task List */}
-            <div className="rounded-[32px] border border-white/5 bg-zinc-950 overflow-scroll">
-                {/* Header */}
-                <TaskTableHeader />
-                {/* Tasks */}
-                <div>
-                    {sortedTasks.map((task) => (
-                        <TaskRow
-                            key={task.id}
-                            task={{ ...task, deadline: task.deadline ?? undefined }}
-                            onView={(task) => {
-                                setSelectedTaskId(task.id);
-                                setIsViewOpen(true);
-                            }}
-                            onPriorityChange={handlePriorityChange}
-                            onStatusChange={handleStatusChange}
-                        />
-                    ))}
+            {/* Task List / Board */}
+            {viewMode === "list" ? (
+                <div className="rounded-[32px] border border-white/5 bg-zinc-950 overflow-scroll">
+                    {/* Header */}
+                    <TaskTableHeader />
+                    {/* Tasks */}
+                    <div>
+                        {sortedTasks.map((task) => (
+                            <TaskRow
+                                key={task.id}
+                                task={{ ...task, deadline: task.deadline ?? undefined }}
+                                onView={(task) => {
+                                    setSelectedTaskId(task.id);
+                                    setIsViewOpen(true);
+                                }}
+                                onPriorityChange={handlePriorityChange}
+                                onStatusChange={handleStatusChange}
+                            />
+                        ))}
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <TaskBoard 
+                    tasks={sortedTasks} 
+                    onStatusChange={handleStatusChange} 
+                    onViewTask={(task) => {
+                        setSelectedTaskId(task.id);
+                        setIsViewOpen(true);
+                    }}
+                />
+            )}
 
             {/* Create Task Modal */}
             <Modal

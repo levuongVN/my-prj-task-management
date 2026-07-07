@@ -30,36 +30,33 @@ export default function CustomSelect({
   onChange,
   type = 'priority',
 }: Props) {
-  const getStyle = (value: string) => {
+  const getStyle = (val: string) => {
+    const v = val?.toLowerCase() || '';
     if (type === 'priority') {
-      switch (value) {
-        case 'High':
+      switch (v) {
+        case 'high':
           return 'bg-red-500/10 text-red-400 border-red-500/20'
-
-        case 'Medium':
+        case 'medium':
           return 'bg-yellow-500/10 text-yellow-300 border-yellow-500/20'
-
-        case 'Low':
+        case 'low':
           return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-
         default:
           return 'bg-zinc-900 text-zinc-300 border-white/10'
       }
     }
 
-    switch (value) {
-      case 'Completed':
+    switch (v) {
+      case 'completed':
         return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-
-      case 'In Progress':
+      case 'in progress':
+      case 'active':
         return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-
-      case 'Pending':
+      case 'pending':
         return 'bg-orange-500/10 text-orange-300 border-orange-500/20'
-
-      case 'In Review':
+      case 'in review':
         return 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-
+      case 'archived':
+        return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
       default:
         return 'bg-zinc-900 text-zinc-300 border-white/10'
     }
@@ -79,7 +76,9 @@ export default function CustomSelect({
             ${getStyle(value)}
           `}
         >
-          <span className="block truncate">{value}</span>
+          <span className="block truncate">
+            {options.find((opt) => opt.value === value)?.label || value}
+          </span>
 
           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
             <ChevronUpDownIcon className="h-5 w-5 text-white/50" />
