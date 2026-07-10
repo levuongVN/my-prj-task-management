@@ -45,12 +45,22 @@ export function deriveCalendarEvents(
 
     // Meetings
     for (const meeting of meetings) {
+        let datePart = "";
+        let timePart = "";
+        try {
+            const [d, t] = meeting.startAt.split("T");
+            datePart = d;
+            timePart = t.substring(0, 5); // "09:00"
+        } catch (e) {
+            datePart = meeting.startAt;
+        }
+
         events.push({
             id: `meeting-${meeting.id}`,
             title: meeting.title,
             type: "meeting",
-            date: meeting.date,
-            time: meeting.time,
+            date: datePart,
+            time: timePart,
             sourceType: "meeting",
             sourceId: meeting.id,
         });

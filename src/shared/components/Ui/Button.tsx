@@ -6,6 +6,7 @@ import type {
 
 type ButtonProps = {
   children: ReactNode
+  isLoading?: boolean
   variant?: 'primary' | 'secondary' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
 } & ButtonHTMLAttributes<HTMLButtonElement>
@@ -42,6 +43,7 @@ export default function Button({
   variant = 'primary',
   className,
   size = 'md',
+  isLoading = false,
   ...props
 }: ButtonProps) {
   return (
@@ -53,6 +55,7 @@ export default function Button({
         className
       )}
       {...props}
+      disabled={isLoading ? true : props.disabled}
     >
       {children}
     </button>

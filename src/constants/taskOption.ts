@@ -1,4 +1,4 @@
-export const priorities = ["High", "Medium", "Low"];
+export const priorities = ["Low", "Medium", "High"];
 export const statuses = ["Pending", "In Progress", "In Review", "Completed"];
 
 export const TaskStatus = {

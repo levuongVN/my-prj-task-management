@@ -6,9 +6,8 @@ export default function useDeleteTask() {
     return useMutation({
         mutationFn: deleteTask,
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["tasks"],
-            });
+            queryClient.invalidateQueries({queryKey: ["tasks"]});
+            queryClient.invalidateQueries({ queryKey: ["analytics"] })
         },
     })
 }

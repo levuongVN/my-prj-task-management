@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -26,8 +26,7 @@ import {
     ChevronLeft, ChevronRight,
     Zap,
 } from "lucide-react";
-import { priorities, statuses } from "../constants/taskOption";
-import { TASKS_MOCK } from "../mocks/calendarMock";
+import { useAnalytics } from "../features/analytics/hooks/useAnalytic";
 
 ChartJS.register(
     CategoryScale,
@@ -45,24 +44,7 @@ ChartJS.register(
 
 type PeriodKey = "week" | "month" | "quarter";
 
-// ── Static mock data (không phụ thuộc period) ─────────────────────────────────
 
-const TOP_PROJECTS = [
-    { name: "TaskFlow Redesign", tasks: 24, completed: 17, progress: 71 },
-    { name: "API Integration", tasks: 18, completed: 7, progress: 39 },
-    { name: "Analytics Dashboard", tasks: 12, completed: 2, progress: 17 },
-    { name: "User Onboarding V2", tasks: 10, completed: 10, progress: 100 },
-    { name: "Auth Refactor", tasks: 8, completed: 8, progress: 100 },
-];
-
-const RECENT_ACTIVITY = [
-    { action: "Completed", task: "Design new hero section", time: "2 min ago", type: "completed" },
-    { action: "In Progress", task: "Fix refresh token bug", time: "18 min ago", type: "created" },
-    { action: "Overdue", task: "Q2 Report Draft", time: "1 hr ago", type: "overdue" },
-    { action: "In Review", task: "Onboarding flow redesign", time: "3 hr ago", type: "review" },
-    { action: "Completed", task: "API endpoint documentation", time: "5 hr ago", type: "completed" },
-    { action: "Created", task: "Mobile push notifications", time: "Yesterday", type: "created" },
-];
 
 // ── Period helpers ─────────────────────────────────────────────────────────────
 
@@ -106,7 +88,7 @@ function getDateLabel(period: PeriodKey, date: Date): string {
                 ((tmp.getTime() - week1.getTime()) / 86400000 -
                     3 +
                     ((week1.getDay() + 6) % 7)) /
-                    7
+                7
             );
         return `Week ${weekNo}, ${start.getFullYear()}`;
     }
@@ -124,6 +106,21 @@ function navigateDate(period: PeriodKey, date: Date, dir: "prev" | "next"): Date
     else if (period === "month") d.setMonth(d.getMonth() + delta);
     else d.setMonth(d.getMonth() + delta * 3);
     return d;
+}
+
+const formatChange = (val: number) => val >= 0 ? `+${val}` : `${val}`;
+const isUp = (val: number) => val >= 0;
+
+function formatTimeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "Just now";
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hr ago`;
+    const days = Math.floor(hours / 24);
+    if (days === 1) return "Yesterday";
+    return `${days} days ago`;
 }
 
 // ── Chart defaults ─────────────────────────────────────────────────────────────
@@ -148,13 +145,22 @@ const chartDefaults = {
 const gridColor = "rgba(255,255,255,0.04)";
 const tickColor = "#52525b";
 
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AnalyticPage() {
     const [period, setPeriod] = useState<PeriodKey>("week");
     const [selectedDate, setSelectedDate] = useState(new Date());
+
+    const apiPeriod = {
+        week: "Week",
+        month: "Month",
+        quarter: "Quarter",
+    }[period];
+
+    const {
+        data: analytics,
+    } = useAnalytics(apiPeriod);
 
     const changeDate = (direction: "prev" | "next") => {
         setSelectedDate((prev) => navigateDate(period, prev, direction));
@@ -165,29 +171,12 @@ export default function AnalyticPage() {
         setSelectedDate(new Date());
     };
 
-    // ── Tasks in current period ────────────────────────────────────────────────
 
-    const [rangeStart, rangeEnd] = useMemo(
-        () => getPeriodRange(period, selectedDate),
-        [period, selectedDate]
-    );
-
-    const tasksInRange = useMemo(
-        () =>
-            TASKS_MOCK.filter((t) => {
-                const due = new Date(t.deadline);
-                return due >= rangeStart && due <= rangeEnd;
-            }),
-        [rangeStart, rangeEnd]
-    );
-
-    const totalTasks = tasksInRange.length;
-    const completedTasks = tasksInRange.filter((t) => statuses[t.status] === "Completed").length;
-    const inProgressTasks = tasksInRange.filter((t) => statuses[t.status] === "In Progress").length;
-    const overdueTasks = tasksInRange.filter(
-        (t) => statuses[t.status] !== "Completed" && new Date(t.deadline) < new Date()
-    ).length;
-    const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+    const totalTasks = analytics?.kpi.totalTasks ?? 0;
+    const completedTasks = analytics?.kpi.completedTasks ?? 0;
+    const inProgressTasks = analytics?.kpi.inProgressTasks ?? 0;
+    const overdueTasks = analytics?.kpi.overdueTasks ?? 0;
+    const completionRate = analytics?.kpi.completionRate ?? 0;
 
     // ── KPI cards ─────────────────────────────────────────────────────────────
 
@@ -195,8 +184,8 @@ export default function AnalyticPage() {
         {
             label: "Tasks Completed",
             value: completedTasks,
-            change: "+12%",
-            up: true,
+            change: formatChange(analytics?.kpi.completedTasksChange ?? 0),
+            up: isUp(analytics?.kpi.completedTasksChange ?? 0),
             sub: "completed tasks",
             icon: CheckCircle2,
             color: "text-emerald-400",
@@ -205,8 +194,8 @@ export default function AnalyticPage() {
         {
             label: "In Progress",
             value: inProgressTasks,
-            change: "+3",
-            up: true,
+            change: formatChange(analytics?.kpi.inProgressTasksChange ?? 0),
+            up: isUp(analytics?.kpi.inProgressTasksChange ?? 0),
             sub: "active tasks",
             icon: Activity,
             color: "text-blue-400",
@@ -215,8 +204,8 @@ export default function AnalyticPage() {
         {
             label: "Overdue",
             value: overdueTasks,
-            change: "-2",
-            up: false,
+            change: formatChange(analytics?.kpi.overdueTasksChange ?? 0),
+            up: isUp(analytics?.kpi.overdueTasksChange ?? 0),
             sub: "past due date",
             icon: AlertCircle,
             color: "text-red-400",
@@ -225,8 +214,8 @@ export default function AnalyticPage() {
         {
             label: "Completion Rate",
             value: `${completionRate}%`,
-            change: "+6%",
-            up: true,
+            change: formatChange(analytics?.kpi.completionRateChange ?? 0),
+            up: isUp(analytics?.kpi.completionRateChange ?? 0),
             sub: "overall progress",
             icon: Target,
             color: "text-violet-400",
@@ -234,198 +223,14 @@ export default function AnalyticPage() {
         },
     ];
 
-    // ── Bar chart data ─────────────────────────────────────────────────────────
-
-    const computedBarData = useMemo(() => {
-        if (period === "week") {
-            const [start] = getPeriodRange("week", selectedDate);
-
-            const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-            const completed = labels.map((_, i) => {
-                const day = new Date(start);
-                day.setDate(start.getDate() + i);
-                return tasksInRange.filter(
-                    (t) =>
-                        statuses[t.status] === "Completed" &&
-                        new Date(t.deadline).toDateString() === day.toDateString()
-                ).length;
-            });
-            const created = labels.map((_, i) => {
-                const day = new Date(start);
-                day.setDate(start.getDate() + i);
-                return tasksInRange.filter(
-                    (t) => new Date(t.deadline).toDateString() === day.toDateString()
-                ).length;
-            });
-            return { labels, completed, created };
-        }
-
-        if (period === "month") {
-            const [start, end] = getPeriodRange("month", selectedDate);
-            const labels: string[] = [];
-            const completed: number[] = [];
-            const created: number[] = [];
-            // eslint-disable-next-line prefer-const
-            let cursor = new Date(start);
-            let w = 1;
-            while (cursor <= end) {
-                const wStart = new Date(cursor);
-                const wEnd = new Date(cursor);
-                wEnd.setDate(cursor.getDate() + 6);
-                if (wEnd > end) wEnd.setTime(end.getTime());
-                labels.push(`Week ${w}`);
-                completed.push(
-                    tasksInRange.filter(
-                        (t) =>
-                            statuses[t.status] === "Completed" &&
-                            new Date(t.deadline) >= wStart &&
-                            new Date(t.deadline) <= wEnd
-                    ).length
-                );
-                created.push(
-                    tasksInRange.filter(
-                        (t) => new Date(t.deadline) >= wStart && new Date(t.deadline) <= wEnd
-                    ).length
-                );
-                cursor.setDate(cursor.getDate() + 7);
-                w++;
-            }
-            return { labels, completed, created };
-        }
-
-        // quarter — 3 months
-        const q = Math.floor(selectedDate.getMonth() / 3);
-        const labels = [0, 1, 2].map((i) => MONTH_NAMES[q * 3 + i]);
-        const completed = [0, 1, 2].map((i) => {
-            const m = q * 3 + i;
-            return TASKS_MOCK.filter(
-                (t) =>
-                    statuses[t.status] === "Completed" &&
-                    new Date(t.deadline).getMonth() === m &&
-                    new Date(t.deadline).getFullYear() === selectedDate.getFullYear()
-            ).length;
-        });
-        const created = [0, 1, 2].map((i) => {
-            const m = q * 3 + i;
-            return TASKS_MOCK.filter(
-                (t) =>
-                    new Date(t.deadline).getMonth() === m &&
-                    new Date(t.deadline).getFullYear() === selectedDate.getFullYear()
-            ).length;
-        });
-        return { labels, completed, created };
-    }, [period, selectedDate, tasksInRange]);
-
-    // ── Line chart data ────────────────────────────────────────────────────────
-
-    const computedLineData = useMemo(() => {
-        const now = new Date();
-
-        if (period === "week") {
-            const labels: string[] = [];
-            const completed: number[] = [];
-            const overdue: number[] = [];
-            for (let i = 5; i >= 0; i--) {
-                const ref = new Date(selectedDate);
-                ref.setDate(ref.getDate() - i * 7);
-                const [s, e] = getPeriodRange("week", ref);
-                const wNum = Math.ceil(ref.getDate() / 7);
-                labels.push(`W${wNum}`);
-                completed.push(
-                    TASKS_MOCK.filter(
-                        (t) =>
-                            statuses[t.status] === "Completed" &&
-                            new Date(t.deadline) >= s &&
-                            new Date(t.deadline) <= e
-                    ).length
-                );
-                overdue.push(
-                    TASKS_MOCK.filter(
-                        (t) =>
-                            statuses[t.status] !== "Completed" &&
-                            new Date(t.deadline) >= s &&
-                            new Date(t.deadline) <= e &&
-                            new Date(t.deadline) < now
-                    ).length
-                );
-            }
-            return { labels, completed, overdue };
-        }
-
-        if (period === "month") {
-            const labels: string[] = [];
-            const completed: number[] = [];
-            const overdue: number[] = [];
-            for (let i = 5; i >= 0; i--) {
-                const ref = new Date(selectedDate);
-                ref.setMonth(ref.getMonth() - i);
-                const [s, e] = getPeriodRange("month", ref);
-                labels.push(MONTH_NAMES[ref.getMonth()]);
-                completed.push(
-                    TASKS_MOCK.filter(
-                        (t) =>
-                            statuses[t.status] === "Completed" &&
-                            t.deadline &&
-                            new Date(t.deadline) >= s &&
-                            new Date(t.deadline) <= e
-                    ).length
-                );
-                overdue.push(
-                    TASKS_MOCK.filter(
-                        (t) =>
-                            statuses[t.status] !== "Completed" &&
-                            t.deadline &&
-                            new Date(t.deadline) >= s &&
-                            new Date(t.deadline) <= e &&
-                            new Date(t.deadline) < now
-                    ).length
-                );
-            }
-            return { labels, completed, overdue };
-        }
-
-        // quarter
-        const labels: string[] = [];
-        const completed: number[] = [];
-        const overdue: number[] = [];
-        for (let i = 5; i >= 0; i--) {
-            const ref = new Date(selectedDate);
-            ref.setMonth(ref.getMonth() - i * 3);
-            const [s, e] = getPeriodRange("quarter", ref);
-            const qNum = Math.floor(ref.getMonth() / 3) + 1;
-            labels.push(`Q${qNum}'${String(ref.getFullYear()).slice(2)}`);
-            completed.push(
-                TASKS_MOCK.filter(
-                    (t) =>
-                        statuses[t.status] === "Completed" &&
-                        t.deadline &&
-                        new Date(t.deadline) >= s &&
-                        new Date(t.deadline) <= e
-                ).length
-            );
-            overdue.push(
-                TASKS_MOCK.filter(
-                    (t) =>
-                        statuses[t.status] !== "Completed" &&
-                        t.deadline &&
-                        new Date(t.deadline) >= s &&
-                        new Date(t.deadline) <= e &&
-                        new Date(t.deadline) < now
-                ).length
-            );
-        }
-        return { labels, completed, overdue };
-    }, [period, selectedDate]);
-
     // ── Chart configs ──────────────────────────────────────────────────────────
 
     const barChartData = {
-        labels: computedBarData.labels,
+        labels: analytics?.activityTrend.map(x => x.label) ?? [],
         datasets: [
             {
                 label: "Completed",
-                data: computedBarData.completed,
+                data: analytics?.activityTrend.map(x => x.completed) ?? [],
                 backgroundColor: "rgba(52,211,153,0.85)",
                 borderRadius: 6,
                 borderSkipped: false,
@@ -433,7 +238,8 @@ export default function AnalyticPage() {
             },
             {
                 label: "Created",
-                data: computedBarData.created,
+                data:
+                    analytics?.activityTrend.map(x => x.created) ?? [],
                 backgroundColor: "rgba(99,102,241,0.5)",
                 borderRadius: 6,
                 borderSkipped: false,
@@ -464,11 +270,11 @@ export default function AnalyticPage() {
     };
 
     const lineChartData = {
-        labels: computedLineData.labels,
+        labels: analytics?.completionTrend.map(x => x.label) ?? [],
         datasets: [
             {
                 label: "Completed",
-                data: computedLineData.completed,
+                data: analytics?.completionTrend.map(x => x.completed) ?? [],
                 borderColor: "#34d399",
                 backgroundColor: "rgba(52,211,153,0.08)",
                 borderWidth: 2,
@@ -479,7 +285,7 @@ export default function AnalyticPage() {
             },
             {
                 label: "Overdue",
-                data: computedLineData.overdue,
+                data: analytics?.completionTrend.map(x => x.overdue) ?? [],
                 borderColor: "#f87171",
                 backgroundColor: "rgba(248,113,113,0.05)",
                 borderWidth: 2,
@@ -513,13 +319,19 @@ export default function AnalyticPage() {
     };
 
     const priorityDoughnut = {
-        labels: priorities,
+        labels: ["High", "Medium", "Low"],
         datasets: [
             {
-                data: priorities.map(
-                    (p) => tasksInRange.filter((t) => priorities[t.priority] === p).length
-                ),
-                backgroundColor: ["#f87171", "#fbbf24", "#34d399"],
+                data: [
+                    analytics?.priority.high ?? 0,
+                    analytics?.priority.medium ?? 0,
+                    analytics?.priority.low ?? 0,
+                ],
+                backgroundColor: [
+                    "#f87171",
+                    "#fbbf24",
+                    "#34d399",
+                ],
                 borderColor: "#0d0d0d",
                 borderWidth: 3,
                 hoverOffset: 6,
@@ -528,13 +340,21 @@ export default function AnalyticPage() {
     };
 
     const statusDoughnut = {
-        labels: statuses,
+        labels: ["Todo", "In Progress", "In Review", "Done"],
         datasets: [
             {
-                data: statuses.map(
-                    (s) => tasksInRange.filter((t) => statuses[t.status] === s).length
-                ),
-                backgroundColor: ["#71717a", "#60a5fa", "#fbbf24", "#34d399"],
+                data: [
+                    analytics?.status.todo ?? 0,
+                    analytics?.status.inProgress ?? 0,
+                    analytics?.status.inReview ?? 0,
+                    analytics?.status.done ?? 0,
+                ],
+                backgroundColor: [
+                    "#71717a",
+                    "#60a5fa",
+                    "#fbbf24",
+                    "#34d399",
+                ],
                 borderColor: "#0d0d0d",
                 borderWidth: 3,
                 hoverOffset: 6,
@@ -580,18 +400,14 @@ export default function AnalyticPage() {
     // ── Bar chart title theo period ────────────────────────────────────────────
 
     const barChartTitle =
-        period === "week"
-            ? "Weekly Task Activity"
-            : period === "month"
-            ? "Monthly Task Activity"
-            : "Quarterly Task Activity";
+        period === "week" ? "Weekly Task Activity" : period === "month" ? "Monthly Task Activity" : "Quarterly Task Activity";
 
     const barChartSub =
         period === "week"
             ? "Created vs completed this week"
             : period === "month"
-            ? "Created vs completed by week this month"
-            : "Created vs completed by month this quarter";
+                ? "Created vs completed by week this month"
+                : "Created vs completed by month this quarter";
 
     // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -617,11 +433,10 @@ export default function AnalyticPage() {
                             <button
                                 key={p}
                                 onClick={() => handlePeriodChange(p)}
-                                className={`rounded-[9px] px-3.5 py-1.5 text-xs font-medium capitalize transition-all ${
-                                    period === p
-                                        ? "bg-white text-black"
-                                        : "text-zinc-500 hover:text-zinc-300"
-                                }`}
+                                className={`rounded-[9px] px-3.5 py-1.5 text-xs font-medium capitalize transition-all ${period === p
+                                    ? "bg-white text-black"
+                                    : "text-zinc-500 hover:text-zinc-300"
+                                    }`}
                             >
                                 {p}
                             </button>
@@ -669,9 +484,8 @@ export default function AnalyticPage() {
                                     <Icon size={15} className={kpi.color} />
                                 </div>
                                 <span
-                                    className={`flex items-center gap-0.5 text-[11px] font-medium ${
-                                        kpi.up ? "text-emerald-400" : "text-red-400"
-                                    }`}
+                                    className={`flex items-center gap-0.5 text-[11px] font-medium ${kpi.up ? "text-emerald-400" : "text-red-400"
+                                        }`}
                                 >
                                     {kpi.up ? (
                                         <ArrowUpRight size={12} />
@@ -715,9 +529,7 @@ export default function AnalyticPage() {
                     <div className="mb-4 flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-white">
-                                {period === "week"
-                                    ? "6-Week Completion Trend"
-                                    : period === "month"
+                                {period === "week" ? "6-Week Completion Trend" : period === "month"
                                     ? "6-Month Completion Trend"
                                     : "6-Quarter Completion Trend"}
                             </p>
@@ -726,8 +538,8 @@ export default function AnalyticPage() {
                                 {period === "week"
                                     ? "weeks"
                                     : period === "month"
-                                    ? "months"
-                                    : "quarters"}
+                                        ? "months"
+                                        : "quarters"}
                             </p>
                         </div>
                         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-400/10">
@@ -779,24 +591,23 @@ export default function AnalyticPage() {
                     </div>
 
                     <div className="space-y-4">
-                        {TOP_PROJECTS.map((proj) => (
-                            <div key={proj.name}>
+                        {analytics?.topProjects.map((proj) => (
+                            <div key={proj.projectId}>
                                 <div className="mb-1.5 flex items-center justify-between">
                                     <p className="text-sm text-zinc-300 truncate max-w-[65%]">
-                                        {proj.name}
+                                        {proj.projectName}
                                     </p>
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs text-zinc-600">
-                                            {proj.completed}/{proj.tasks}
+                                            {proj.completedTasks}/{proj.totalTasks}
                                         </span>
                                         <span
-                                            className={`text-xs font-medium ${
-                                                proj.progress === 100
-                                                    ? "text-emerald-400"
-                                                    : proj.progress < 25
+                                            className={`text-xs font-medium ${proj.progress === 100
+                                                ? "text-emerald-400"
+                                                : proj.progress < 25
                                                     ? "text-red-400"
                                                     : "text-zinc-300"
-                                            }`}
+                                                }`}
                                         >
                                             {proj.progress}%
                                         </span>
@@ -804,13 +615,12 @@ export default function AnalyticPage() {
                                 </div>
                                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
                                     <div
-                                        className={`h-full rounded-full transition-all ${
-                                            proj.progress === 100
-                                                ? "bg-emerald-400"
-                                                : proj.progress < 25
+                                        className={`h-full rounded-full transition-all ${proj.progress === 100
+                                            ? "bg-emerald-400"
+                                            : proj.progress < 25
                                                 ? "bg-red-400"
                                                 : "bg-indigo-400"
-                                        }`}
+                                            }`}
                                         style={{ width: `${proj.progress}%` }}
                                     />
                                 </div>
@@ -855,28 +665,25 @@ export default function AnalyticPage() {
                     </div>
 
                     <div className="space-y-1">
-                        {RECENT_ACTIVITY.map((item, idx) => (
+                        {(analytics?.recentActivity ?? []).map((item, idx) => (
                             <div
                                 key={idx}
                                 className="flex items-start gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-white/4"
                             >
                                 <div className="mt-1.5 flex flex-col items-center">
-                                    <div
-                                        className={`h-2 w-2 flex-shrink-0 rounded-full ${activityDot[item.type]}`}
-                                    />
-                                    {idx < RECENT_ACTIVITY.length - 1 && (
-                                        <div
-                                            className="mt-1 w-px flex-1 bg-white/5"
-                                            style={{ height: 20 }}
-                                        />
+                                    <div className={`h-2 w-2 flex-shrink-0 rounded-full ${activityDot[item.type]}`} />
+                                    {idx < (analytics?.recentActivity.length ?? 0) - 1 && (
+                                        <div className="mt-1 w-px flex-1 bg-white/5" style={{ height: 20 }} />
                                     )}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <p className="text-[11px] font-medium leading-none">
                                         <span className={activityLabel[item.type]}>{item.action}</span>
                                     </p>
-                                    <p className="mt-0.5 truncate text-xs text-zinc-400">{item.task}</p>
-                                    <p className="mt-0.5 text-[10px] text-zinc-700">{item.time}</p>
+                                    <p className="mt-0.5 truncate text-xs text-zinc-400">{item.taskTitle}</p>
+                                    <p className="mt-0.5 text-[10px] text-zinc-700">
+                                        {formatTimeAgo(item.occurredAt)}
+                                    </p>
                                 </div>
                             </div>
                         ))}
@@ -886,42 +693,91 @@ export default function AnalyticPage() {
 
             {/* ── Row 3: Insight banner ─────────────────────────────────────────── */}
             <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {/* Card 1 — Completion rate */}
                 <div className="flex items-center gap-4 rounded-2xl border border-emerald-500/15 bg-emerald-500/5 px-5 py-4">
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-400/15">
                         <TrendingUp size={18} className="text-emerald-400" />
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-emerald-300">Great momentum!</p>
-                        <p className="mt-0.5 text-xs text-zinc-600">
-                            Completion rate up{" "}
-                            <span className="text-emerald-400 font-medium">6%</span> from last period.
-                        </p>
+                        {(analytics?.kpi.completionRateChange ?? 0) >= 0 ? (
+                            <>
+                                <p className="text-sm font-medium text-emerald-300">Great momentum!</p>
+                                <p className="mt-0.5 text-xs text-zinc-600">
+                                    Completion rate up{" "}
+                                    <span className="text-emerald-400 font-medium">
+                                        +{analytics?.kpi.completionRateChange ?? 0}%
+                                    </span>{" "}
+                                    from last period.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-sm font-medium text-red-300">Slowing down</p>
+                                <p className="mt-0.5 text-xs text-zinc-600">
+                                    Completion rate down{" "}
+                                    <span className="text-red-400 font-medium">
+                                        {analytics?.kpi.completionRateChange ?? 0}%
+                                    </span>{" "}
+                                    from last period.
+                                </p>
+                            </>
+                        )}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 rounded-2xl border border-amber-500/15 bg-amber-500/5 px-5 py-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-400/15">
-                        <AlertCircle size={18} className="text-amber-400" />
-                    </div>
-                    <div>
-                        <p className="text-sm font-medium text-amber-300">Watch out</p>
-                        <p className="mt-0.5 text-xs text-zinc-600">
-                            <span className="text-amber-400 font-medium">3 projects</span> at risk of
-                            falling behind.
-                        </p>
-                    </div>
-                </div>
+                {/* Card 2 — Projects at risk */}
+                {(() => {
+                    const atRisk = (analytics?.topProjects ?? []).filter(p => p.progress < 50 && p.totalTasks > 0).length;
+                    return (
+                        <div className="flex items-center gap-4 rounded-2xl border border-amber-500/15 bg-amber-500/5 px-5 py-4">
+                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-400/15">
+                                <AlertCircle size={18} className="text-amber-400" />
+                            </div>
+                            <div>
+                                {atRisk > 0 ? (
+                                    <>
+                                        <p className="text-sm font-medium text-amber-300">Watch out</p>
+                                        <p className="mt-0.5 text-xs text-zinc-600">
+                                            <span className="text-amber-400 font-medium">{atRisk} project{atRisk > 1 ? "s" : ""}</span>{" "}
+                                            at risk of falling behind.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-sm font-medium text-emerald-300">All on track!</p>
+                                        <p className="mt-0.5 text-xs text-zinc-600">No projects at risk right now.</p>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })()}
 
+                {/* Card 3 — Peak day */}
                 <div className="flex items-center gap-4 rounded-2xl border border-violet-500/15 bg-violet-500/5 px-5 py-4">
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-violet-400/15">
                         <Zap size={18} className="text-violet-400" />
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-violet-300">Peak day: Thursday</p>
-                        <p className="mt-0.5 text-xs text-zinc-600">
-                            Avg <span className="text-violet-400 font-medium">8 tasks</span> completed
-                            on Thursdays.
-                        </p>
+                        {analytics?.insight.peakDay && analytics.insight.peakDay !== "—" ? (
+                            <>
+                                <p className="text-sm font-medium text-violet-300">
+                                    Peak day: {analytics.insight.peakDay}
+                                </p>
+                                <p className="mt-0.5 text-xs text-zinc-600">
+                                    Avg{" "}
+                                    <span className="text-violet-400 font-medium">
+                                        {analytics.insight.peakDayCount} tasks
+                                    </span>{" "}
+                                    completed on {analytics.insight.peakDay}s.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-sm font-medium text-zinc-400">No peak day yet</p>
+                                <p className="mt-0.5 text-xs text-zinc-600">Complete more tasks to see your peak day.</p>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

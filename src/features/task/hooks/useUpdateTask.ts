@@ -10,6 +10,7 @@ export const useUpdateTask = () => {
             queryClient.invalidateQueries({
                 queryKey: ["tasks"],
             });
+            queryClient.invalidateQueries({ queryKey: ["analytics"] })
         },
     });
 }

@@ -126,25 +126,25 @@ export const MOCK_PROJECTS: Project[] = [
     {
         id: "101",
         title: "Standup",
-        date: "2026-06-04",
-        time: "09:00",
+        startAt: "2026-06-04T09:00:00Z",
+        userId: "user-1",
     },
     {
         id: "102",
         title: "Design Review",
-        date: "2026-06-10",
-        time: "14:00",
+        startAt: "2026-06-10T14:00:00Z",
+        userId: "user-1",
     },
     {
         id: "103",
         title: "Sprint Planning",
-        date: "2026-06-15",
-        time: "10:00",
+        startAt: "2026-06-15T10:00:00Z",
+        userId: "user-2",
     },
     {
         id: "104",
         title: "Client Call",
-        date: "2026-06-19",
-        time: "11:00",
+        startAt: "2026-06-19T11:00:00Z",
+        userId: "user-2",
     },
 ];

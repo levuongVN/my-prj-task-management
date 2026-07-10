@@ -11,6 +11,7 @@ export const useCreateTask = () => {
             queryClient.invalidateQueries({
                 queryKey: ["tasks"],
             });
+            queryClient.invalidateQueries({ queryKey: ["analytics"] })
         },
     });
 };

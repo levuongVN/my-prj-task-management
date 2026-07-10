@@ -1,7 +1,7 @@
 export interface Meeting {
     id: string;
     title: string;
-    date: string;
-    time: string;
-    projectId?: string;
+    startAt: string;
+    projectId?: string | null;
+    userId: string;
 }

@@ -30,6 +30,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
     const { data: projects = [] } = useProjects();
     const updateTaskMutation = useUpdateTask();
     const deleteTaskMutation = useDeleteTask();
+    const isMutating = updateTaskMutation.isPending ||deleteTaskMutation.isPending;
     if (!task) return null;
 
     const priorityBadge = {
@@ -104,6 +105,8 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             name: project.name,
                         }
                     ))}
+
+                    isLoading={isMutating}
                 />
             ) : (
                 <div className="overflow-hidden rounded-2xl border border-white/8 bg-zinc-950">
@@ -190,6 +193,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             variant="secondary"
                             className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium"
                             onClick={() => setIsEditing(true)}
+                            disabled={isMutating}
                         >
                             <Pencil size={14} />
                             Edit
@@ -230,6 +234,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             }}
                             variant="ghost"
                             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
+                            disabled ={isMutating || task.status === statuses.indexOf("Completed")}
                         >
                             <CircleCheckBig size={14} />
                             Mark complete
@@ -258,6 +263,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             }}
                             variant="ghost"
                             className="flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20"
+                            disabled={isMutating}
                         >
                             <Trash2 size={14} />
                             Delete

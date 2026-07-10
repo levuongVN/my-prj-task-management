@@ -13,12 +13,14 @@ interface Props {
         data: CreateTaskFormValues
     ) => void;
     projects: ProjectOption[];
+    isLoading?: boolean;
 }
 
 export default function CreateTaskForm({
     onSubmit,
     defaultValues,
     projects,
+    isLoading = false,
 }: Props) {
     const {
         register,
@@ -256,6 +258,7 @@ export default function CreateTaskForm({
                     <Button
                         type="submit"
                         variant="primary"
+                        isLoading={isLoading}
                     >
                         Update Task
                     </Button>
@@ -263,6 +266,7 @@ export default function CreateTaskForm({
                     <Button
                         type="submit"
                         variant="primary"
+                        isLoading={isLoading}
                     >
                         Create Task
                     </Button>

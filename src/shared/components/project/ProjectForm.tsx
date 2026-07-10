@@ -6,9 +6,10 @@ import Button from "../Ui/Button";
 interface Props {
     onSubmit: (data: ProjectFormValues) => void;
     isEdit?: boolean;
+    isLoading?: boolean;
 }
 
-export default function ProjectForm({ onSubmit, isEdit }: Props) {
+export default function ProjectForm({ onSubmit, isEdit, isLoading }: Props) {
     const {
         register,
         control,
@@ -102,7 +103,7 @@ export default function ProjectForm({ onSubmit, isEdit }: Props) {
                 </div>
             </div>
 
-            <Button className="w-full bg-blue-500 text-white py-3 rounded-2xl hover:bg-blue-600 transition-colors" variant="ghost" type="submit">
+            <Button isLoading = {isLoading} className="w-full bg-blue-500 text-white py-3 rounded-2xl hover:bg-blue-600 transition-colors" variant="ghost" type="submit">
                 {isEdit ? "Update Project" : "Create Project"}
             </Button>
         </form>

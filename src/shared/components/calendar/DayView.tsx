@@ -6,9 +6,10 @@ interface Props {
     date: string;
     allEvents: CalendarEvent[];
     onNewEvent: () => void;
+    onEventClick: (event: CalendarEvent) => void;
 }
 
-export default function DayView({ date, allEvents, onNewEvent }: Props) {
+export default function DayView({ date, allEvents, onNewEvent, onEventClick }: Props) {
     const events = allEvents.filter(
         (e) => e.date.split("T")[0] === date
     );
@@ -61,6 +62,7 @@ export default function DayView({ date, allEvents, onNewEvent }: Props) {
                                             <div
                                                 key={event.id}
                                                 className={`flex items-center gap-3 rounded-xl border border-white/6 px-4 py-3 ${s.bg} cursor-pointer hover:border-white/12 transition-colors`}
+                                                onClick={() => onEventClick(event)}
                                             >
                                                 <span className={s.text}>{EVENT_ICONS[type]}</span>
                                                 <div className="flex-1 min-w-0">

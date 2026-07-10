@@ -22,6 +22,7 @@ interface ProjectDetailPanelProps {
     onEdit: (project: Project) => void;
     onDelete: (project: Project) => void;
     onViewTasks?: (project: Project) => void;
+    isLoading?: boolean;
 }
 
 export default function ProjectDetailPanel({
@@ -30,7 +31,8 @@ export default function ProjectDetailPanel({
     onClose,
     onEdit,
     onDelete,
-    onViewTasks
+    onViewTasks,
+    isLoading = false,
 }: ProjectDetailPanelProps) {
     const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -209,6 +211,7 @@ export default function ProjectDetailPanel({
                                 <button
                                     onClick={handleDelete}
                                     className="flex-1 rounded-lg bg-red-500 py-2 text-xs font-medium text-white transition-colors hover:bg-red-600"
+                                    disabled = {isLoading}
                                 >
                                     Yes, delete
                                 </button>
@@ -224,6 +227,7 @@ export default function ProjectDetailPanel({
                         <div className="flex gap-2">
                             <button
                                 onClick={() => onEdit(project)}
+                                disabled={isLoading}
                                 className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-black transition-colors hover:bg-zinc-200"
                             >
                                 <Pencil size={13} />
@@ -231,6 +235,7 @@ export default function ProjectDetailPanel({
                             </button>
                             <button
                                 onClick={() => setConfirmDelete(true)}
+                                disabled={isLoading}
                                 className="flex items-center justify-center gap-1.5 rounded-xl border border-white/8 px-4 py-2.5 text-sm font-medium text-zinc-400 transition-colors hover:border-red-500/30 hover:bg-red-500/8 hover:text-red-400"
                             >
                                 <Trash2 size={13} />

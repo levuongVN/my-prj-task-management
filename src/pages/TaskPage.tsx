@@ -262,11 +262,11 @@ export default function TaskPage() {
                 <CreateTaskForm onSubmit={(data) => {
                     createTaskMutation.mutate({
                         title: data.title,
-                        description: data.description,
+                        description: data.description? data.description : null,
                         priority: priorities.indexOf(data.priority),
                         status: statuses.indexOf(data.status),
                         deadline: new Date(data.due).toISOString(),
-                        projectId: data.projectId,
+                        projectId: data.projectId ? data.projectId : null,
                     },
                         {
                             onSuccess: () => {

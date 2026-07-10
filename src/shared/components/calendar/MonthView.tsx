@@ -10,9 +10,10 @@ interface Props {
     allEvents: CalendarEvent[];
     todayDate: string;
     onDayClick: (date: string) => void;
+    onEventClick?: (event: CalendarEvent) => void;
 }
 
-export default function MonthView({ year, month, allEvents, todayDate, onDayClick }: Props) {
+export default function MonthView({ year, month, allEvents, todayDate, onDayClick, onEventClick }: Props) {
     const [hoveredDay, setHoveredDay] = useState<string | null>(null);
     const days = buildMonthDays(year, month);
 
@@ -61,7 +62,7 @@ export default function MonthView({ year, month, allEvents, todayDate, onDayClic
                             </div>
                             <div className="space-y-0.5">
                                 
-                                {visibleEvents.map((event) => <EventPill key={event.id} event={event} />)}
+                                {visibleEvents.map((event) => <EventPill key={event.id} event={event} onClick={onEventClick} />)}
 
                                 {hiddenCount > 0 && (
                                     <p className="px-1 text-[10px] text-zinc-600">+{hiddenCount} more</p>
