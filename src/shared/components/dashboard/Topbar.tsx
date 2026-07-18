@@ -30,7 +30,7 @@ export default function Topbar() {
                         <Bell size={20} />
                     </button>
 
-                    <div className="w-14 h-14 rounded-2xl bg-white text-black flex items-center justify-center font-bold text-lg">
+                    <div className="w-14 h-14 rounded-2xl bg-accent text-accent-fg flex items-center justify-center font-bold text-lg">
                         V
                     </div>
                 </div>

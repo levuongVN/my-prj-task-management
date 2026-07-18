@@ -26,7 +26,7 @@ export default function TaskHeader(
 
             <Button
                 variant="secondary"
-                className="h-14 px-6 rounded-2xl bg-white text-black font-semibold flex items-center gap-2"
+                className="h-14 px-6 rounded-2xl bg-accent text-accent-fg font-semibold flex items-center gap-2"
                 onClick={onCreateTask}
             >
                 <Plus size={20} />

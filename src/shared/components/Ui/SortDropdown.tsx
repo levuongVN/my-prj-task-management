@@ -150,7 +150,7 @@ export default function SortDropdown<
 
                                     ${sortOrder ===
                                         item.value
-                                        ? "bg-white text-black"
+                                        ? "bg-accent text-accent-fg"
                                         : "border border-white/10 bg-black"
                                     }
                                 `}

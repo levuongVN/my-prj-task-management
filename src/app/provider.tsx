@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "../contexts/ThemeContext";
 
 const queryClient = new QueryClient();
 
@@ -10,14 +11,16 @@ type Props = {
 
 export default function Providers({ children }: Props) {
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-        }}
-      />
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+          }}
+        />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

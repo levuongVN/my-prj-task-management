@@ -139,6 +139,7 @@ export default function MeetingDetailPanel({ meeting, isOpen, onClose, projects 
                             }}
                             onSubmit={handleUpdate}
                             projects={projects}
+                            isLoading={updateMutation.isPending}
                         />
                     ) : (
                         <div className="space-y-5">
@@ -185,7 +186,8 @@ export default function MeetingDetailPanel({ meeting, isOpen, onClose, projects 
                                 <div className="flex gap-2">
                                     <button
                                         onClick={handleDelete}
-                                        className="flex-1 rounded-lg bg-red-500 py-2 text-xs font-medium text-white transition-colors hover:bg-red-600"
+                                        disabled={deleteMutation.isPending}
+                                        className="flex-1 rounded-lg bg-red-500 py-2 text-xs font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
                                     >
                                         Yes, delete
                                     </button>
@@ -201,14 +203,16 @@ export default function MeetingDetailPanel({ meeting, isOpen, onClose, projects 
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-black transition-colors hover:bg-zinc-200"
+                                    disabled={deleteMutation.isPending}
+                                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-black transition-colors hover:bg-zinc-200 disabled:opacity-50"
                                 >
                                     <Pencil size={13} />
                                     Edit meeting
                                 </button>
                                 <button
                                     onClick={() => setConfirmDelete(true)}
-                                    className="flex items-center justify-center gap-1.5 rounded-xl border border-white/8 px-4 py-2.5 text-sm font-medium text-zinc-400 transition-colors hover:border-red-500/30 hover:bg-red-500/8 hover:text-red-400"
+                                    disabled={deleteMutation.isPending}
+                                    className="flex items-center justify-center gap-1.5 rounded-xl border border-white/8 px-4 py-2.5 text-sm font-medium text-zinc-400 transition-colors hover:border-red-500/30 hover:bg-red-500/8 hover:text-red-400 disabled:opacity-50"
                                 >
                                     <Trash2 size={13} />
                                     Delete

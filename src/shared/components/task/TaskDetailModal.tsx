@@ -234,7 +234,8 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             }}
                             variant="ghost"
                             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
-                            disabled ={isMutating || task.status === statuses.indexOf("Completed")}
+                            isLoading={updateTaskMutation.isPending}
+                            disabled={isMutating || task.status === statuses.indexOf("Completed")}
                         >
                             <CircleCheckBig size={14} />
                             Mark complete
@@ -263,6 +264,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             }}
                             variant="ghost"
                             className="flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20"
+                            isLoading={deleteTaskMutation.isPending}
                             disabled={isMutating}
                         >
                             <Trash2 size={14} />

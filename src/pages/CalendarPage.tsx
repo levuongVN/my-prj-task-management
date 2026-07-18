@@ -364,7 +364,7 @@ export default function CalendarPage() {
                             <button
                                 key={v}
                                 onClick={() => setView(v)}
-                                className={`rounded-[9px] px-3.5 py-1.5 text-xs font-medium capitalize transition-all ${view === v ? "bg-white text-black" : "text-zinc-500 hover:text-zinc-300"}`}
+                                className={`rounded-[9px] px-3.5 py-1.5 text-xs font-medium capitalize transition-all ${view === v ? "bg-accent text-accent-fg" : "text-zinc-500 hover:text-zinc-300"}`}
                             >
                                 {v}
                             </button>

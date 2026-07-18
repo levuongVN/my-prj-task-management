@@ -259,7 +259,9 @@ export default function TaskPage() {
                 title="Create New Task"
                 submitText="Create Task"
             >
-                <CreateTaskForm onSubmit={(data) => {
+                <CreateTaskForm 
+                    isLoading={createTaskMutation.isPending}
+                    onSubmit={(data) => {
                     createTaskMutation.mutate({
                         title: data.title,
                         description: data.description? data.description : null,

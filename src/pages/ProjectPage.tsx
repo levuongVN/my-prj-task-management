@@ -268,7 +268,7 @@ export default function ProjectsPage() {
                 title="Create New Project"
             >
                 <FormProvider {...createProjectForm}>
-                    <ProjectForm onSubmit={handleCreateProject} />
+                    <ProjectForm isLoading={createProjectMutation.isPending} onSubmit={handleCreateProject} />
                 </FormProvider>
             </Modal>
 
@@ -280,7 +280,7 @@ export default function ProjectsPage() {
 
             >
                 <FormProvider {...editProjectForm}>
-                    <ProjectForm isEdit={true} onSubmit={handleEditProject} />
+                    <ProjectForm isEdit={true} isLoading={updateProjectMutation.isPending} onSubmit={handleEditProject} />
                 </FormProvider>
             </Modal>
 
@@ -291,6 +291,7 @@ export default function ProjectsPage() {
                 onClose={handleCloseDetail}
                 onEdit={handleOpenEdit}
                 onDelete={handleDeleteProject}
+                isLoading={deleteProjectMutation.isPending}
             />
         </div>
     );

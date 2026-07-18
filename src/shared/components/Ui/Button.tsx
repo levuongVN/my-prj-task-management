@@ -24,10 +24,10 @@ gap-3
 
 const variants = {
   primary:
-    'bg-black text-white hover:bg-zinc-800 shadow-lg',
+    'bg-accent text-accent-fg hover:opacity-90 shadow-lg',
 
   secondary:
-    'border border-zinc-200 bg-white text-black hover:bg-zinc-50',
+    'border border-white/10 bg-white/5 text-white hover:bg-white/10',
 
   ghost:
     '',
@@ -37,6 +37,8 @@ const sizes = {
   md: 'h-12 px-5',
   lg: 'h-16 px-6 text-lg',
 }
+
+import { Loader2 } from 'lucide-react'
 
 export default function Button({
   children,
@@ -52,12 +54,20 @@ export default function Button({
         baseStyles,
         variants[variant],
         sizes[size],
-        className
+        className,
+        isLoading && "opacity-70 cursor-not-allowed"
       )}
       {...props}
       disabled={isLoading ? true : props.disabled}
     >
-      {children}
+      {isLoading ? (
+        <>
+            <Loader2 className="animate-spin" size={20} />
+            {children}
+        </>
+      ) : (
+          children
+      )}
     </button>
   )
 }

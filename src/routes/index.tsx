@@ -10,6 +10,7 @@ import TaskPage from "../pages/TaskPage";
 import ProjectsPage from "../pages/ProjectPage";
 import CalendarPage from "../pages/CalendarPage";
 import AnalyticsPage from "../pages/AnalyticPage";
+import SettingsPage from "../pages/SettingsPage";
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -31,6 +32,7 @@ function AppRoutes() {
           <Route path="/projects" element={<ProjectsPage />}></Route>
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
 
         {/* DEFAULT */}

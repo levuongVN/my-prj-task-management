@@ -51,7 +51,7 @@ export default function Sidebar() {
       <div>
         {/* LOGO */}
         <div className="flex items-center gap-4 px-2">
-          <div className="w-12 h-12 rounded-2xl bg-white text-black flex items-center justify-center font-bold text-xl">
+          <div className="w-12 h-12 rounded-2xl bg-accent text-accent-fg flex items-center justify-center font-bold text-xl">
             T
           </div>
 
@@ -80,7 +80,7 @@ export default function Sidebar() {
                     w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all
                     ${
                       isActive
-                        ? 'bg-white text-black'
+                        ? 'bg-accent text-accent-fg'
                         : 'text-zinc-400 hover:bg-white/5 hover:text-white'
                     }
                   `
@@ -102,7 +102,7 @@ export default function Sidebar() {
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl rounded-full" />
 
         <div className="relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-white text-black flex items-center justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-accent text-accent-fg flex items-center justify-center">
             <Sparkles size={24} />
           </div>
 
@@ -114,7 +114,7 @@ export default function Sidebar() {
             Unlock advanced analytics and team collaboration features.
           </p>
 
-          <button className="mt-6 h-12 w-full rounded-2xl bg-white text-black font-semibold hover:opacity-90 transition">
+          <button className="mt-6 h-12 w-full rounded-2xl bg-accent text-accent-fg font-semibold hover:opacity-90 transition">
             Upgrade Plan
           </button>
         </div>

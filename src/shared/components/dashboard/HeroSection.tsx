@@ -22,7 +22,7 @@ export default function HeroSection() {
                     </p>
 
                     <div className="mt-8 flex flex-wrap items-center gap-4">
-                        <button className="h-14 px-7 rounded-2xl bg-white text-black font-semibold hover:opacity-90 transition flex items-center gap-2">
+                        <button className="h-14 px-7 rounded-2xl bg-accent text-accent-fg font-semibold hover:opacity-90 transition flex items-center gap-2">
                             <Plus size={18} />
                             Create Task
                         </button>
