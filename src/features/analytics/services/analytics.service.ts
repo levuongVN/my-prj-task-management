@@ -1,9 +1,9 @@
 import api from "../../../shared/services/axios";
 const analyticsService = {
-    getAnalytics: async (period = "Week") => {
-        const response = await api.get(
-            `/analytics?period=${period}`
-        );
+    getAnalytics: async (period = "Week", referenceDate: string) => {
+        const response = await api.get("/analytics", {
+            params: { period, referenceDate },
+        });
         return response.data;
     },
 };
