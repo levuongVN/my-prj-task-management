@@ -1,8 +1,9 @@
 import api from "../../../shared/services/axios";
+import type { UserDto } from "../types/UserDto";
 import type { UpdateUserPayload } from "../types/updateUserPayload";
 
-export const getUserById = async function () {
-    const response = await api.get(`/me`);
+export const getUserById = async (): Promise<UserDto> => {
+    const response = await api.get<UserDto>(`/me`);
     return response.data;
 };
 

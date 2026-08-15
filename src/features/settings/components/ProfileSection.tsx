@@ -1,13 +1,26 @@
 import { useState } from "react";
-import { AtSign, Camera, Check, Clock, Globe, Mail, User } from "lucide-react";
+import { Camera, Check, Clock, Globe, Mail, User } from "lucide-react";
 import { SectionTitle } from "./SectionTitle";
 import { SettingCard } from "./SettingCard";
+import Loading from "../../../shared/components/Ui/Loading";
+import { useUser } from "../../user/hooks/useUser";
+import type { UserDto } from "../../user/types/UserDto";
 
 export function ProfileSection() {
-    const [name, setName] = useState("");
-    const [username, setUsername] = useState("vuongle");
-    const [email] = useState("vuongle@example.com");
+    const { data: user, isLoading } = useUser();
+
+    if (isLoading) {
+        return <Loading text="Loading profile..." />;
+    }
+
+    return <ProfileForm key={user?.id} user={user} />;
+}
+
+function ProfileForm({ user }: { user?: UserDto }) {
+    const [name, setName] = useState(user?.fullName ?? "");
     const [timezone, setTimezone] = useState("Asia/Ho_Chi_Minh");
+
+    const avatarInitial = user?.fullName?.charAt(0)?.toUpperCase() ?? "V";
 
     return (
         <div className="space-y-8">
@@ -17,9 +30,13 @@ export function ProfileSection() {
                 <p className="mb-5 text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Avatar</p>
                 <div className="flex items-center gap-6">
                     <div className="relative">
-                        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-3xl font-bold text-black">
-                            V
-                        </div>
+                        {user?.avatarUrl ? (
+                            <img src={user.avatarUrl} alt="Avatar" className="h-20 w-20 rounded-2xl object-cover" />
+                        ) : (
+                            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-3xl font-bold text-black">
+                                {avatarInitial}
+                            </div>
+                        )}
                         <button className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-zinc-800 text-zinc-300 transition hover:bg-zinc-700">
                             <Camera size={13} />
                         </button>
@@ -44,13 +61,8 @@ export function ProfileSection() {
                             className="w-full rounded-xl border border-white/8 bg-white/4 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-white/20 focus:bg-white/6" />
                     </div>
                     <div>
-                        <label className="mb-2 flex items-center gap-1.5 text-xs font-medium text-zinc-400"><AtSign size={12} /> Username</label>
-                        <input value={username} onChange={(e) => setUsername(e.target.value)}
-                            className="w-full rounded-xl border border-white/8 bg-white/4 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-white/20 focus:bg-white/6" />
-                    </div>
-                    <div>
                         <label className="mb-2 flex items-center gap-1.5 text-xs font-medium text-zinc-400"><Mail size={12} /> Email</label>
-                        <input value={email} disabled
+                        <input value={user?.email ?? ""} disabled
                             className="w-full cursor-not-allowed rounded-xl border border-white/5 bg-white/2 px-4 py-3 text-sm text-zinc-600 outline-none" />
                         <p className="mt-1.5 text-xs text-zinc-600">Email cannot be changed.</p>
                     </div>
