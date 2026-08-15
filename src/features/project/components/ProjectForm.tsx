@@ -1,7 +1,7 @@
 import { Controller, useFormContext, useFormState } from "react-hook-form";
-import { type ProjectFormValues } from "../../../features/project/schemals/project.schemal";
-import CustomSelect from "../Ui/CustomSelect";
-import Button from "../Ui/Button";
+import { type ProjectFormValues } from "../schemals/project.schemal";
+import CustomSelect from "../../../shared/components/Ui/CustomSelect";
+import Button from "../../../shared/components/Ui/Button";
 
 interface Props {
     onSubmit: (data: ProjectFormValues) => void;

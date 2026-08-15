@@ -1,7 +1,7 @@
 import { X, Pencil, Trash2, CalendarDays, BarChart2, Clock, AlertTriangle } from "lucide-react";
 import { useState } from "react";
-import type { Project } from "../../types/Project";
-import { useTaskByProjectId } from "../../../features/task/hooks/useTaskByProjectId";
+import type { Project } from "../../../shared/types/Project";
+import { useTaskByProjectId } from "../../task/hooks/useTaskByProjectId";
 
 const STATUS_LABEL: Record<number, string> = { 0: "Active", 1: "Completed", 2: "Archived" };
 const STATUS_COLOR: Record<number, string> = {

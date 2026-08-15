@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { X, Pencil, Trash2, Clock, FolderKanban } from "lucide-react";
-import type { Meeting } from "../../types/Meeting";
-import type { ProjectOption } from "../project/ProjectSelect";
+import type { Meeting } from "../../../shared/types/Meeting";
+import type { ProjectOption } from "../../../features/project/components/ProjectSelect";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { useUpdateMeeting } from "../../../features/calendar/Hooks/useUpdateMeeting";
-import { useDeleteMeeting } from "../../../features/calendar/Hooks/useDeleteMeeting";
-import type { CreateMeetingFormValues } from "../../../features/calendar/schemals/event.schema";
+import { useUpdateMeeting } from "../Hooks/useUpdateMeeting";
+import { useDeleteMeeting } from "../Hooks/useDeleteMeeting";
+import type { CreateMeetingFormValues } from "../schemals/event.schema";
 import CreateMeetingForm from "./FormCreateMeeting";
 
 interface Props {

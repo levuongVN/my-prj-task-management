@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { CalendarEvent } from "../../../shared/types/Calendar";
 import { DAYS_OF_WEEK } from "../../../constants/calendarConst";
-import { buildMonthDays } from "../../utils/dateHelper";
+import { buildMonthDays } from "../../../shared/utils/dateHelper";
 import EventPill from "./EventPill";
 
 interface Props {

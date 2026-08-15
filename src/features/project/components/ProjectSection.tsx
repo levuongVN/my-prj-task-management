@@ -1,5 +1,5 @@
 import { PROJECT_STATUS_MAP, STATUS_CONFIG } from "../../../constants/projectConst";
-import type { Project } from "../../types/Project";
+import type { Project } from "../../../shared/types/Project";
 import ProjectCard from "./ProjectCard";
 
 interface Props {

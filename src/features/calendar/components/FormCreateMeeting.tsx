@@ -1,9 +1,9 @@
 import { Controller, useForm, type DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Button from "../Ui/Button";
-import ProjectSelect from "../project/ProjectSelect";
-import type { ProjectOption } from "../project/ProjectSelect";
-import { createMeetingSchema, type CreateMeetingFormValues } from "../../../features/calendar/schemals/event.schema";
+import Button from "../../../shared/components/Ui/Button";
+import ProjectSelect from "../../../features/project/components/ProjectSelect";
+import type { ProjectOption } from "../../../features/project/components/ProjectSelect";
+import { createMeetingSchema, type CreateMeetingFormValues } from "../schemals/event.schema";
 
 interface Props {
     defaultValues?: DefaultValues<CreateMeetingFormValues>;

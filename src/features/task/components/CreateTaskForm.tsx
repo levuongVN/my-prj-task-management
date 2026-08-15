@@ -1,11 +1,11 @@
 import { Controller, useForm, type DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import CustomSelect from "../Ui/CustomSelect";
-import { createTaskSchema, type CreateTaskFormValues } from "../../../features/task/schemas/task.schema";
-import Button from "../Ui/Button";
-import type { ProjectOption } from "../project/ProjectSelect";
-import ProjectSelect from "../project/ProjectSelect";
+import CustomSelect from "../../../shared/components/Ui/CustomSelect";
+import { createTaskSchema, type CreateTaskFormValues } from "../schemas/task.schema";
+import Button from "../../../shared/components/Ui/Button";
+import type { ProjectOption } from "../../../features/project/components/ProjectSelect";
+import ProjectSelect from "../../../features/project/components/ProjectSelect";
 
 interface Props {
     defaultValues?: DefaultValues<CreateTaskFormValues>;

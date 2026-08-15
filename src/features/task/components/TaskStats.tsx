@@ -1,5 +1,5 @@
 import { statuses } from "../../../constants/taskOption"
-import type { Task } from "../../types/Task"
+import type { Task } from "../../../shared/types/Task"
 
 
 interface Props {

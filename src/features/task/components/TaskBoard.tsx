@@ -14,7 +14,7 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import TaskColumn from "./TaskColumn";
 import TaskCard from "./TaskCard";
 import { TASK_STATUS_MAP } from "../../../constants/taskOption";
-import type { Task } from "../../types/Task";
+import type { Task } from "../../../shared/types/Task";
 
 interface TaskBoardProps {
     tasks: Task[];

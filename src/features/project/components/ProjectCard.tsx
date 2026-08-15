@@ -1,7 +1,7 @@
 import { Calendar } from "lucide-react";
 import { PROJECT_ICONS, PROJECT_STATUS_MAP, STATUS_CONFIG } from "../../../constants/projectConst";
-import type { Project } from "../../types/Project";
-import { formatDate } from "../../utils/dateHelper";
+import type { Project } from "../../../shared/types/Project";
+import { formatDate } from "../../../shared/utils/dateHelper";
 
 interface Props {
     project: Project;

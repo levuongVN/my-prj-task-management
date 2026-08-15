@@ -1,5 +1,5 @@
 import { EVENT_ICONS, EVENT_STYLES } from "../../../constants/calendarConst";
-import type { CalendarEvent } from "../../types/Calendar";
+import type { CalendarEvent } from "../../../shared/types/Calendar";
 
 interface Props {
     event: CalendarEvent;

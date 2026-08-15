@@ -1,4 +1,4 @@
-import Modal from "../Ui/Modal";
+import Modal from "../../../shared/components/Ui/Modal";
 import {
     CalendarDays,
     Flag,
@@ -8,16 +8,16 @@ import {
     FolderKanban,
 } from "lucide-react";
 
-import type { Task } from "../../types/Task";
-import Button from "../Ui/Button";
+import type { Task } from "../../../shared/types/Task";
+import Button from "../../../shared/components/Ui/Button";
 import { priorities, statuses } from "../../../constants/taskOption";
 import { useState } from "react";
 import CreateTaskForm from "./CreateTaskForm";
-import { useUpdateTask } from "../../../features/task/hooks/useUpdateTask";
+import { useUpdateTask } from "../hooks/useUpdateTask";
 import toast from "react-hot-toast";
 import axios from "axios";
-import useDeleteTask from "../../../features/task/hooks/useDeleteTask";
-import { useProjects } from "../../../features/project/hooks";
+import useDeleteTask from "../hooks/useDeleteTask";
+import { useProjects } from "../../project/hooks";
 
 interface Props {
     isOpen: boolean;

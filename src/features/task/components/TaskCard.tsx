@@ -4,7 +4,7 @@ import { Clock, AlertCircle } from "lucide-react";
 import { TASK_PRIORITY_MAP } from "../../../constants/taskOption";
 import { format } from "date-fns";
 import clsx from "clsx";
-import type { Task } from "../../types/Task";
+import type { Task } from "../../../shared/types/Task";
 
 interface TaskCardProps {
     task: Task;

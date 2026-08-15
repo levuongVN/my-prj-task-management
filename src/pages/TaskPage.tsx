@@ -1,19 +1,13 @@
 import { useState } from "react";
-import {
-    Search,
-    LayoutGrid,
-    List
-} from "lucide-react";
-import TaskHeader from "../shared/components/task/TaskHeader";
-import TaskStats from "../shared/components/task/TaskStats";
-import TaskTableHeader from "../shared/components/task/TaskTableHeader";
-import TaskRow from "../shared/components/task/TaskRow";
+import TaskHeader from "../features/task/components/TaskHeader";
+import TaskStats from "../features/task/components/TaskStats";
+import TaskTableHeader from "../features/task/components/TaskTableHeader";
+import TaskRow from "../features/task/components/TaskRow";
 import Modal from "../shared/components/Ui/Modal";
-import CreateTaskForm from "../shared/components/task/CreateTaskForm";
-import FilterDropdown from "../shared/components/Ui/FilterDropdown";
-import SortDropdown from "../shared/components/Ui/SortDropdown";
-import TaskDetailModal from "../shared/components/task/TaskDetailModal";
-import TaskBoard from "../shared/components/task/TaskBoard";
+import CreateTaskForm from "../features/task/components/CreateTaskForm";
+import TaskDetailModal from "../features/task/components/TaskDetailModal";
+import TaskBoard from "../features/task/components/TaskBoard";
+import { TaskToolbar } from "../features/task/components/TaskToolbar";
 import { priorities, statuses } from "../constants/taskOption";
 import { useTasks } from "../features/task/hooks/useTask";
 import { useCreateTask } from "../features/task/hooks/useCreateTask";
@@ -135,87 +129,24 @@ export default function TaskPage() {
             <TaskHeader onCreateTask={() => setIsOpen(true)} />
 
             {/* Search & Filter */}
-            <div className="flex flex-col lg:flex-row gap-4 mb-8">
-                <div className="flex-1 relative">
-                    <Search
-                        size={20}
-                        className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500"
-                    />
-
-                    <input
-                        type="text"
-                        placeholder="Search tasks..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full h-14 rounded-2xl bg-zinc-950 border border-white/5 pl-14 pr-5 outline-none text-white placeholder:text-zinc-500 focus:border-zinc-700 transition"
-                    />
-                </div>
-
-                <FilterDropdown
-                    title="Filter Tasks"
-                    groups={[
-                        {
-                            title: "Priority",
-                            colors: {
-                                High: "bg-red-500",
-                                Medium: "bg-yellow-500",
-                                Low: "bg-green-500",
-                            },
-                            options: priorities,
-                            selected: selectedPriorities,
-                            onChange: setSelectedPriorities,
-                        },
-                        {
-                            title: "Status",
-                            colors: {
-                                Pending: "bg-yellow-500",
-                                "In Progress": "bg-blue-500",
-                                "In Review": "bg-purple-500",
-                                Completed: "bg-green-500",
-                            },
-                            options: statuses,
-                            selected: selectedStatuses,
-                            onChange: setSelectedStatuses,
-                        },
-                    ]}
-                    onClear={() => {
-                        setSelectedPriorities([]);
-                        setSelectedStatuses([]);
-                    }}
-                    className="
-                    flex items-center gap-1.5 rounded-xl border border-white/10 cursor-pointer hover:bg-zinc-900 transition px-3 h-14
-                    "
-                />
-                <SortDropdown
-                    title="Sort Tasks"
-                    sortBy={sortBy}
-                    sortOrder={sortOrder}
-                    options={[
-                        { label: "Priority", value: "priority" },
-                        { label: "Status", value: "status" },
-                        { label: "Due Date", value: "due" },
-                        { label: "Title", value: "title" },
-                    ]}
-                    className="flex items-center gap-1.5 rounded-xl border border-white/10 cursor-pointer hover:bg-zinc-900 transition px-3 h-14"
-                    onSortByChange={setSortBy}
-                    onSortOrderChange={setSortOrder}
-                />
-                
-                <div className="flex bg-zinc-900 rounded-xl p-1 h-14 items-center shrink-0">
-                    <button 
-                        onClick={() => setViewMode("list")}
-                        className={`h-full px-4 rounded-lg flex items-center justify-center transition ${viewMode === "list" ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white"}`}
-                    >
-                        <List size={20} />
-                    </button>
-                    <button 
-                        onClick={() => setViewMode("board")}
-                        className={`h-full px-4 rounded-lg flex items-center justify-center transition ${viewMode === "board" ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white"}`}
-                    >
-                        <LayoutGrid size={20} />
-                    </button>
-                </div>
-            </div>
+            <TaskToolbar
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                selectedPriorities={selectedPriorities}
+                onPrioritiesChange={setSelectedPriorities}
+                selectedStatuses={selectedStatuses}
+                onStatusesChange={setSelectedStatuses}
+                onClearFilters={() => {
+                    setSelectedPriorities([]);
+                    setSelectedStatuses([]);
+                }}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSortByChange={setSortBy}
+                onSortOrderChange={setSortOrder}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+            />
 
             {/* Stats */}
             <TaskStats tasks={tasks.map((t) => ({ ...t, deadline: t.deadline ?? undefined }))} />

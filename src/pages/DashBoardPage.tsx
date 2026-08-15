@@ -8,9 +8,9 @@ import {
 } from 'chart.js'
 
 
-import HeroSection from '../shared/components/dashboard/HeroSection'
-import TaskList from '../shared/components/dashboard/TaskList'
-import RightPanel from '../shared/components/dashboard/RightPanel'
+import HeroSection from '../features/dashboard/components/HeroSection'
+import TaskList from '../features/dashboard/components/TaskList'
+import RightPanel from '../features/dashboard/components/RightPanel'
 import { TASKS_MOCK } from '../mocks/calendarMock'
 
 ChartJS.register(

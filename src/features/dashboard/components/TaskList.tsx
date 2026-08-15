@@ -1,6 +1,6 @@
 import { AlertTriangle, Clock3 } from "lucide-react";
-import { getPriorityStyle, getStatusStyle } from "../../utils/taskStyle";
-import type { Task } from "../../types/Task";
+import { getPriorityStyle, getStatusStyle } from "../../../shared/utils/taskStyle";
+import type { Task } from "../../../shared/types/Task";
 import { priorities, statuses } from "../../../constants/taskOption";
 
 interface TaskListProps {

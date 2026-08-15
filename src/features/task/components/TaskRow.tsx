@@ -1,6 +1,6 @@
 import { CheckCircle2, Clock3 } from "lucide-react";
-import CustomSelect from "../Ui/CustomSelect";
-import type { Task } from "../../types/Task";
+import CustomSelect from "../../../shared/components/Ui/CustomSelect";
+import type { Task } from "../../../shared/types/Task";
 import { priorities, statuses } from "../../../constants/taskOption";
 interface TaskRowProps {
     task: Task

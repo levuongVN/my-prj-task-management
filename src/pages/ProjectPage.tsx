@@ -1,30 +1,26 @@
-import {
-    Plus,
-    Search,
-} from "lucide-react";
-import { useProjectFilters } from "../shared/hooks/ProjectFilter";
-import type { Project } from "../shared/types/Project";
-import { PROJECT_STATUS_REVERSE, SORT_OPTIONS, STATUS_OPTIONS } from "../constants/projectConst";
-import Section from "../shared/components/project/ProjectSection";
-import FilterDropdown from "../shared/components/Ui/FilterDropdown";
-import SortDropdown from "../shared/components/Ui/SortDropdown";
-import { useState } from "react";
-import Button from "../shared/components/Ui/Button";
-import Modal from "../shared/components/Ui/Modal";
-import { FormProvider, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import ProjectForm from "../shared/components/project/ProjectForm";
-import ProjectDetailPanel from "../shared/components/project/ProjectDetailPanel";
+import { useProjectFilters } from '../shared/hooks/ProjectFilter';
+import type { Project } from '../shared/types/Project';
+import { PROJECT_STATUS_REVERSE } from '../constants/projectConst';
+import Section from '../features/project/components/ProjectSection';
+import { useState } from 'react';
+import Modal from '../shared/components/Ui/Modal';
+import { FormProvider, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import ProjectForm from '../features/project/components/ProjectForm';
+import ProjectDetailPanel from '../features/project/components/ProjectDetailPanel';
 
 import {
     projectSchema,
     type ProjectFormValues,
-} from "../features/project/schemals/project.schemal";
-import { useProjects } from "../features/project/hooks/useProjects";
-import { useCreateProject } from "../features/project/hooks/useCreateProject";
-import { useUpdateProject } from "../features/project/hooks/useUpdateProject";
-import { useDeleteProject } from "../features/project/hooks/useDeleteProject";
-import toast from "react-hot-toast";
+} from '../features/project/schemals/project.schemal';
+import { useProjects } from '../features/project/hooks/useProjects';
+import { useCreateProject } from '../features/project/hooks/useCreateProject';
+import { useUpdateProject } from '../features/project/hooks/useUpdateProject';
+import { useDeleteProject } from '../features/project/hooks/useDeleteProject';
+import toast from 'react-hot-toast';
+
+import { ProjectPageHeader } from '../features/project/components/ProjectPageHeader';
+import { ProjectToolbar } from '../features/project/components/ProjectToolbar';
 
 export default function ProjectsPage() {
     // ── Fetch từ API ──────────────────────────────────────
@@ -171,77 +167,19 @@ export default function ProjectsPage() {
 
     return (
         <div className="min-h-screen bg-[#0d0d0d] px-7 py-7 font-sans">
-            <div className="mb-6 flex items-end justify-between">
-                <div>
-                    <p className="mb-1.5 text-[11px] font-medium uppercase tracking-widest text-zinc-600">
-                        Project management
-                    </p>
-                    <h1 className="text-[22px] font-medium text-white">Your Projects</h1>
-                    <p className="mt-1 text-sm text-zinc-600">Track progress across all your initiatives.</p>
-                </div>
-                <Button
-                    onClick={() => setIsCreateOpen(true)}
-                    variant="ghost"
-                    className="flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-medium text-black hover:bg-zinc-200 transition-colors"
-                >
-                    <Plus size={14} />
-                    New project
-                </Button>
-            </div>
+            <ProjectPageHeader onCreate={() => setIsCreateOpen(true)} />
 
-            <div className="mb-7 flex gap-2">
-                <div className="flex h-9 flex-1 items-center gap-2 rounded-xl border border-white/8 bg-[#1a1a1a] px-3">
-                    <Search size={14} className="text-zinc-600" />
-                    <input
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search projects..."
-                        className="w-full bg-transparent text-sm text-zinc-300 outline-none placeholder:text-zinc-600"
-                    />
-                </div>
-                <FilterDropdown
-                    title="Filter Projects"
-                    groups={[
-                        {
-                            title: "Status",
-                            options: [...STATUS_OPTIONS],
-                            selected: selectedStatuses.map((n) =>
-                                STATUS_OPTIONS[n] ?? STATUS_OPTIONS[0]
-                            ),
-                            onChange: (values) =>
-                                setSelectedStatuses(
-                                    (values as string[]).map(
-                                        (v) => STATUS_OPTIONS.indexOf(v as typeof STATUS_OPTIONS[number])
-                                    ).filter((n) => n !== -1)
-                                ),
-                            colors: {
-                                active: "bg-blue-500",
-                                completed: "bg-emerald-500",
-                                archived: "bg-zinc-500",
-                            },
-                        },
-                    ]}
-                    onClear={clearFilters}
-                />
-                <SortDropdown
-                    title="Sort Projects"
-                    sortBy={sortBy}
-                    sortOrder={sortOrder}
-                    options={
-                        SORT_OPTIONS.map((option) => ({
-                            label: option.label,
-                            value: option.value,
-                        }))
-                    }
-                    onSortByChange={
-                        (value) =>
-                            setSortBy(
-                                value as typeof SORT_OPTIONS[number]["value"]
-                            )
-                    }
-                    onSortOrderChange={setSortOrder}
-                />
-            </div>
+            <ProjectToolbar
+                search={search}
+                onSearchChange={setSearch}
+                selectedStatuses={selectedStatuses}
+                onStatusesChange={setSelectedStatuses}
+                onClearFilters={clearFilters}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSortByChange={(v) => setSortBy(v as "name" | "due" | "progress" | "status")}
+                onSortOrderChange={setSortOrder}
+            />
 
             {isLoading ? (
                 <div className="flex items-center justify-center py-20">

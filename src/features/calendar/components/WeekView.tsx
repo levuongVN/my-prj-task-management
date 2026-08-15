@@ -1,5 +1,5 @@
 import type { CalendarEvent } from "../../../shared/types/Calendar";
-import { buildWeekDays } from "../../utils/dateHelper";
+import { buildWeekDays } from "../../../shared/utils/dateHelper";
 import EventPill from "./EventPill";
 
 interface Props {

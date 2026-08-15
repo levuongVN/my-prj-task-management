@@ -1,7 +1,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import TaskCard from "./TaskCard";
-import type { Task } from "../../types/Task";
+import type { Task } from "../../../shared/types/Task";
 import clsx from "clsx";
 
 interface TaskColumnProps {
