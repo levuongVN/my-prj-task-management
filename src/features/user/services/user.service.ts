@@ -8,6 +8,6 @@ export const getUserById = async (): Promise<UserDto> => {
 };
 
 export const updateUser = async function (payload: UpdateUserPayload) {
-    const response = await api.put(`/me`, payload);
+    const response = await api.put(`/me/update`, payload);
     return response.data;
 }

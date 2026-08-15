@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Camera, Check, Clock, Globe, Mail, User } from "lucide-react";
+import { Camera, Check, Clock, Globe, Loader2, Mail, User } from "lucide-react";
+import toast from "react-hot-toast";
 import { SectionTitle } from "./SectionTitle";
 import { SettingCard } from "./SettingCard";
 import Loading from "../../../shared/components/Ui/Loading";
 import { useUser } from "../../user/hooks/useUser";
+import { useUpdateUser } from "../../user/hooks/useUpdateUser";
 import type { UserDto } from "../../user/types/UserDto";
 
 export function ProfileSection() {
@@ -19,8 +21,24 @@ export function ProfileSection() {
 function ProfileForm({ user }: { user?: UserDto }) {
     const [name, setName] = useState(user?.fullName ?? "");
     const [timezone, setTimezone] = useState("Asia/Ho_Chi_Minh");
+    const updateUser = useUpdateUser();
 
     const avatarInitial = user?.fullName?.charAt(0)?.toUpperCase() ?? "V";
+
+    const isDirty = name !== (user?.fullName ?? "");
+    const canSave = name.trim().length > 0 && isDirty && !updateUser.isPending;
+
+    const handleSave = () => {
+        if (!user) return;
+
+        updateUser.mutate(
+            { Id: user.id, FullName: name.trim() },
+            {
+                onSuccess: () => toast.success("Profile updated"),
+                onError: () => toast.error("Failed to update profile"),
+            }
+        );
+    };
 
     return (
         <div className="space-y-8">
@@ -88,8 +106,13 @@ function ProfileForm({ user }: { user?: UserDto }) {
             </SettingCard>
 
             <div className="flex justify-end">
-                <button className="flex items-center gap-2 rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-black transition hover:bg-zinc-100">
-                    <Check size={15} /> Save profile
+                <button
+                    onClick={handleSave}
+                    disabled={!canSave}
+                    className="flex items-center gap-2 rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-black transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
+                >
+                    {updateUser.isPending ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
+                    {updateUser.isPending ? "Saving..." : "Save profile"}
                 </button>
             </div>
         </div>

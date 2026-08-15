@@ -56,8 +56,8 @@ export function NotificationsSection() {
                         {group.items.map((item, idx) => (
                             <div key={item.key}>
                                 <div className="flex items-center justify-between py-3">
-                                    <div>
-                                        <p className="text-sm font-medium text-zinc-200">{item.title}</p>
+                                    <div className={notifs[item.key] ? "" : "opacity-45"}>
+                                        <p className={`text-sm font-medium transition-colors ${notifs[item.key] ? "text-zinc-100" : "text-zinc-500"}`}>{item.title}</p>
                                         <p className="mt-0.5 text-xs text-zinc-600">{item.sub}</p>
                                     </div>
                                     <Toggle enabled={notifs[item.key]} onChange={() => toggle(item.key)} />
