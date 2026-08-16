@@ -3,5 +3,5 @@ export type UpdateUserPayload = { // for both update profile and password
     FullName?: string;
     Email?: string;
     Password?: string;
-    AvatarUrl?: string;
+    AvatarUrl?: string | null;
 }

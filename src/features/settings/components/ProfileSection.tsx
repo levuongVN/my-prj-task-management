@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Camera, Check, Clock, Globe, Loader2, Mail, User } from "lucide-react";
 import toast from "react-hot-toast";
 import { SectionTitle } from "./SectionTitle";
@@ -6,10 +6,12 @@ import { SettingCard } from "./SettingCard";
 import Loading from "../../../shared/components/Ui/Loading";
 import { useUser } from "../../user/hooks/useUser";
 import { useUpdateUser } from "../../user/hooks/useUpdateUser";
+import { uploadAvatar, deleteAvatar } from "../../user/services/user.service";
 import type { UserDto } from "../../user/types/UserDto";
 
 export function ProfileSection() {
     const { data: user, isLoading } = useUser();
+    console.log("user", user);
 
     if (isLoading) {
         return <Loading text="Loading profile..." />;
@@ -21,23 +23,58 @@ export function ProfileSection() {
 function ProfileForm({ user }: { user?: UserDto }) {
     const [name, setName] = useState(user?.fullName ?? "");
     const [timezone, setTimezone] = useState("Asia/Ho_Chi_Minh");
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [removedAvatar, setRemovedAvatar] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const updateUser = useUpdateUser();
 
     const avatarInitial = user?.fullName?.charAt(0)?.toUpperCase() ?? "V";
 
+    const hasAvatarChange = avatarFile !== null || removedAvatar;
     const isDirty = name !== (user?.fullName ?? "");
-    const canSave = name.trim().length > 0 && isDirty && !updateUser.isPending;
+    const canSave = name.trim().length > 0 && (isDirty || hasAvatarChange) && !updateUser.isPending;
 
-    const handleSave = () => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 1 * 1024 * 1024) {
+            toast.error("Image must be under 1MB");
+            return;
+        }
+
+        setAvatarFile(file);
+        setAvatarPreview(URL.createObjectURL(file));
+        setRemovedAvatar(false);
+        e.target.value = "";
+    };
+
+    const handleRemoveAvatar = () => {
+        setAvatarFile(null);
+        setAvatarPreview(null);
+        setRemovedAvatar(true);
+    };
+
+    const handleSave = async () => {
         if (!user) return;
 
-        updateUser.mutate(
-            { Id: user.id, FullName: name.trim() },
-            {
-                onSuccess: () => toast.success("Profile updated"),
-                onError: () => toast.error("Failed to update profile"),
+        try {
+            if (removedAvatar) {
+                await deleteAvatar();
+            } else if (avatarFile) {
+                await uploadAvatar(avatarFile);
             }
-        );
+
+            await updateUser.mutateAsync({
+                Id: user.id,
+                FullName: name.trim(),
+            });
+
+            toast.success("Profile updated");
+        } catch {
+            toast.error("Failed to update profile");
+        }
     };
 
     return (
@@ -48,25 +85,30 @@ function ProfileForm({ user }: { user?: UserDto }) {
                 <p className="mb-5 text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Avatar</p>
                 <div className="flex items-center gap-6">
                     <div className="relative">
-                        {user?.avatarUrl ? (
-                            <img src={user.avatarUrl} alt="Avatar" className="h-20 w-20 rounded-2xl object-cover" />
+                        {avatarPreview || (!removedAvatar && user?.avatarUrl) ? (
+                            <img
+                                src={avatarPreview ?? user?.avatarUrl ?? undefined}
+                                alt="Avatar"
+                                className="h-20 w-20 rounded-2xl object-cover"
+                            />
                         ) : (
                             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-3xl font-bold text-black">
                                 {avatarInitial}
                             </div>
                         )}
-                        <button className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-zinc-800 text-zinc-300 transition hover:bg-zinc-700">
+                        <button onClick={() => fileInputRef.current?.click()} className="absolute -bottom-1.5 -right-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-zinc-800 text-zinc-300 transition hover:bg-zinc-700">
                             <Camera size={13} />
                         </button>
                     </div>
                     <div>
                         <p className="text-sm font-medium text-zinc-300">Upload a photo</p>
-                        <p className="mt-1 text-xs text-zinc-600">PNG, JPG up to 2MB. Recommended 256×256.</p>
+                        <p className="mt-1 text-xs text-zinc-600">PNG, JPG up to 1MB</p>
                         <div className="mt-3 flex gap-2">
-                            <button className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-white/6">Upload</button>
-                            <button className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:text-zinc-400">Remove</button>
+                            <button onClick={() => fileInputRef.current?.click()} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:bg-white/6">Upload</button>
+                            <button onClick={handleRemoveAvatar} className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-600 transition hover:text-zinc-400">Remove</button>
                         </div>
                     </div>
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                 </div>
             </SettingCard>
 
