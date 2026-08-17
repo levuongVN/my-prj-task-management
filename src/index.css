@@ -47,7 +47,7 @@ body {
 }
 
 /* Sidebar */
-aside.hidden.lg\:flex {
+aside {
     background-color: var(--bg-surface) !important;
     border-color: var(--border) !important;
     transition: background-color 0.3s ease;
@@ -83,16 +83,53 @@ html.theme-light {
     color-scheme: light;
 }
 
-html.theme-light .text-white {
+/* ── Text colors ─────────────────────────────────────────────────────────────── */
+html.theme-light .text-white,
+html.theme-light .text-zinc-50,
+html.theme-light .text-zinc-100,
+html.theme-light .text-zinc-200,
+html.theme-light .text-white\/50 {
     color: var(--text-primary) !important;
 }
 
+html.theme-light .text-zinc-300,
 html.theme-light .text-zinc-400,
 html.theme-light .text-zinc-500,
 html.theme-light .text-zinc-600 {
     color: var(--text-secondary) !important;
 }
 
+/* Accent / semantic text — darken for contrast on light backgrounds */
+html.theme-light .text-blue-400    { color: #2563eb !important; }
+html.theme-light .text-emerald-400 { color: #059669 !important; }
+html.theme-light .text-red-400     { color: #dc2626 !important; }
+html.theme-light .text-amber-400   { color: #b45309 !important; }
+html.theme-light .text-purple-400  { color: #7c3aed !important; }
+html.theme-light .text-pink-400    { color: #db2777 !important; }
+html.theme-light .text-orange-400  { color: #c2410c !important; }
+html.theme-light .text-orange-300  { color: #c2410c !important; }
+html.theme-light .text-indigo-400  { color: #4338ca !important; }
+html.theme-light .text-teal-400    { color: #0f766e !important; }
+html.theme-light .text-cyan-400    { color: #0e7490 !important; }
+html.theme-light .text-yellow-500  { color: #a16207 !important; }
+html.theme-light .text-green-500   { color: #15803d !important; }
+html.theme-light .text-red-500     { color: #b91c1c !important; }
+
+/* -300 variants used in insight banners */
+html.theme-light .text-emerald-300 { color: #059669 !important; }
+html.theme-light .text-red-300     { color: #dc2626 !important; }
+html.theme-light .text-amber-300   { color: #b45309 !important; }
+
+/* ── Hover text states (white→dark on light) ─────────────────────────────────── */
+html.theme-light .hover\:text-white:hover     { color: var(--text-primary) !important; }
+html.theme-light .hover\:text-zinc-300:hover  { color: var(--text-secondary) !important; }
+html.theme-light .hover\:text-zinc-400:hover  { color: var(--text-secondary) !important; }
+html.theme-light .hover\:text-zinc-200:hover  { color: var(--text-primary) !important; }
+html.theme-light .hover\:text-zinc-500:hover  { color: var(--text-secondary) !important; }
+html.theme-light .group:hover .group-hover\:text-white { color: var(--text-primary) !important; }
+
+/* ── Borders ─────────────────────────────────────────────────────────────────── */
+html.theme-light .border-white\/4,
 html.theme-light .border-white\/5,
 html.theme-light .border-white\/6,
 html.theme-light .border-white\/8,
@@ -100,20 +137,62 @@ html.theme-light .border-white\/10 {
     border-color: var(--border) !important;
 }
 
+html.theme-light .border-white\/12,
+html.theme-light .border-white\/15,
+html.theme-light .border-white\/20,
+html.theme-light .border-white\/25,
+html.theme-light .border-white\/30,
+html.theme-light .border-white\/50 {
+    border-color: var(--border-strong) !important;
+}
+
+/* ── Background surfaces ─────────────────────────────────────────────────────── */
+html.theme-light .bg-white\/2,
+html.theme-light .bg-white\/3,
+html.theme-light .bg-white\/4,
 html.theme-light .bg-white\/5,
 html.theme-light .bg-white\/\[0\.03\],
-html.theme-light .bg-white\/4 {
+html.theme-light .bg-white\/6,
+html.theme-light .bg-white\/8,
+html.theme-light .bg-white\/10,
+html.theme-light .bg-white\/15 {
     background-color: var(--bg-hover) !important;
 }
 
 html.theme-light .bg-zinc-950,
 html.theme-light .bg-zinc-900,
+html.theme-light .bg-zinc-800,
+html.theme-light .bg-black,
+html.theme-light .bg-\[\#0b0b0b\],
 html.theme-light .bg-\[\#111\],
 html.theme-light .bg-\[\#090909\],
 html.theme-light .bg-\[\#0d0d0d\],
 html.theme-light .bg-\[\#141414\],
-html.theme-light .bg-\[\#1a1a1a\] {
+html.theme-light .bg-\[\#161616\],
+html.theme-light .bg-\[\#181818\],
+html.theme-light .bg-\[\#1a1a1a\],
+html.theme-light .bg-\[\#1c1c1c\] {
     background-color: var(--bg-card) !important;
+}
+
+/* Hover backgrounds — translucent white → translucent black */
+html.theme-light .hover\:bg-white\/5:hover,
+html.theme-light .hover\:bg-white\/\[0\.05\]:hover,
+html.theme-light .hover\:bg-white\/8:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+html.theme-light .hover\:bg-white\/10:hover {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+html.theme-light .hover\:bg-white\/15:hover {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Topbar sticky backdrop */
+html.theme-light .bg-black\/40 {
+    background-color: rgba(255, 255, 255, 0.6) !important;
 }
 
 /* ── Accent-aware interactive elements ────────────────────────────────────────── */

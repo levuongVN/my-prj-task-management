@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import MainLayout from "../layouts/mainLayout";
 
@@ -27,6 +27,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         >
+          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/tasks" element={<TaskPage />} />
           <Route path="/projects" element={<ProjectsPage />}></Route>

@@ -68,7 +68,7 @@ export default function CalendarPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0d0d0d] px-7 py-7 font-sans">
+        <div className="px-7 py-7 font-sans">
             {/* Page header */}
             <CalendarPageHeader
                 view={view}

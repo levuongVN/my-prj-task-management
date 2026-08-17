@@ -49,7 +49,7 @@ export default function DashboardPage() {
 
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex">
+    <div className="flex">
       {/* MAIN */}
       <main className="flex-1 min-w-0">
 

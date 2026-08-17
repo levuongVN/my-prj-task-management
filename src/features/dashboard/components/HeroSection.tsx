@@ -2,7 +2,7 @@ import { Plus, Sparkles } from "lucide-react";
 
 export default function HeroSection() {
     return (
-        <section className="relative overflow-hidden rounded-[36px] border border-white/5 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-8 lg:p-10">
+        <section className="relative overflow-hidden rounded-[36px] border border-white/5 bg-bg-surface p-8 lg:p-10">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 blur-3xl rounded-full" />
 
             <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-10">

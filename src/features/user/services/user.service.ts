@@ -30,3 +30,7 @@ export const deleteAvatar = async (): Promise<UserDto> => {
     const response = await api.delete<UserDto>("/me/avatar");
     return response.data;
 };
+
+export const changePassword = async (newPassword: string): Promise<void> => {
+    await api.put("/me/update/password", { NewPassword: newPassword });
+};

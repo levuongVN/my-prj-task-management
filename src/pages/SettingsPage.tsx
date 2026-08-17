@@ -19,7 +19,7 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="min-h-screen text-white">
+        <div>
             <div className="mb-8">
                 <p className="mb-1.5 text-[11px] font-medium uppercase tracking-widest text-zinc-600">Configuration</p>
                 <h1 className="text-[22px] font-medium text-white">Settings</h1>

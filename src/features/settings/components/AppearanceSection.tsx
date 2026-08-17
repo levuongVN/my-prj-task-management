@@ -1,6 +1,7 @@
 import { Check, Moon, Monitor, Sparkles, Sun, Type } from "lucide-react";
 import toast from "react-hot-toast";
-import { useTheme, type FontSize, type ColorMode } from "../../../contexts/ThemeContext";
+import { useTheme } from "../../../contexts/useTheme";
+import type { FontSize, ColorMode } from "../../../contexts/theme.types";
 import { THEME_PRESETS, ACCENT_COLORS } from "../data";
 import { SectionTitle } from "./SectionTitle";
 import { SettingCard } from "./SettingCard";

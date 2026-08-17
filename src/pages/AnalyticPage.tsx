@@ -40,7 +40,7 @@ export default function AnalyticPage() {
     const overdueTasks = analytics?.kpi.overdueTasks ?? 0;
 
     return (
-        <div className="min-h-screen bg-[#0d0d0d] px-7 py-7 font-sans">
+        <div className="px-7 py-7 font-sans">
             <AnalyticsHeader
                 period={period}
                 selectedDate={selectedDate}

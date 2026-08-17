@@ -124,7 +124,7 @@ export default function TaskPage() {
         );
     }
     return (
-        <div className="min-h-screen bg-black text-white p-6">
+        <div className="p-6">
             {/* Header */}
             <TaskHeader onCreateTask={() => setIsOpen(true)} />
 

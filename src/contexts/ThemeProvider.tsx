@@ -1,26 +1,6 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export type ThemeId = 'midnight' | 'zinc' | 'nord' | 'navy' | 'rose-pine' | 'light';
-export type AccentId = 'white' | 'indigo' | 'blue' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'purple';
-export type FontSize = 'sm' | 'md' | 'lg';
-export type ColorMode = 'dark' | 'light' | 'system';
-
-interface ThemeConfig {
-    themeId: ThemeId;
-    accentId: AccentId;
-    fontSize: FontSize;
-    colorMode: ColorMode;
-}
-
-interface ThemeContextValue extends ThemeConfig {
-    setThemeId: (id: ThemeId) => void;
-    setAccentId: (id: AccentId) => void;
-    setFontSize: (size: FontSize) => void;
-    setColorMode: (mode: ColorMode) => void;
-    saveAppearance: () => void;
-}
+import { useEffect, useState, type ReactNode } from 'react';
+import type { ThemeConfig, ThemeId, AccentId, FontSize } from './theme.types';
+import { ThemeContext } from './ThemeContext';
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 
@@ -126,7 +106,6 @@ const FONT_SIZE_VARS: Record<FontSize, string> = {
 function applyTheme(config: ThemeConfig) {
     const root = document.documentElement;
 
-    // Resolve actual theme id (if system, find preference; if light, force light; if dark, use selected theme or midnight)
     let activeThemeId = config.themeId;
     if (config.colorMode === 'light') {
         activeThemeId = 'light';
@@ -137,27 +116,29 @@ function applyTheme(config: ThemeConfig) {
         activeThemeId = 'midnight';
     }
 
-    // Apply theme variables
     const themeVars = THEME_VARS[activeThemeId];
     Object.entries(themeVars).forEach(([key, value]) => {
         root.style.setProperty(key, value);
     });
 
-    // Apply accent variables
-    const accentVars = ACCENT_VARS[config.accentId];
+    const accentVars = { ...ACCENT_VARS[config.accentId] };
+
+    if (activeThemeId === 'light' && config.accentId === 'white') {
+        accentVars['--accent'] = '#000000';
+        accentVars['--accent-fg'] = '#ffffff';
+        accentVars['--accent-muted'] = 'rgba(0,0,0,0.10)';
+    }
+
     Object.entries(accentVars).forEach(([key, value]) => {
         root.style.setProperty(key, value);
     });
 
-    // Apply font size
     root.style.setProperty('--font-size-base', FONT_SIZE_VARS[config.fontSize]);
     root.style.fontSize = FONT_SIZE_VARS[config.fontSize];
 
-    // Apply color mode attribute
     root.setAttribute('data-theme', activeThemeId);
     root.setAttribute('data-color-mode', config.colorMode);
 
-    // Light/dark class for tailwind
     if (activeThemeId === 'light') {
         root.classList.add('theme-light');
         root.classList.remove('theme-dark');
@@ -167,9 +148,7 @@ function applyTheme(config: ThemeConfig) {
     }
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
-
-const ThemeContext = createContext<ThemeContextValue | null>(null);
+// ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [config, setConfig] = useState<ThemeConfig>(() => {
@@ -184,11 +163,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         return DEFAULT_CONFIG;
     });
 
-    // Apply on mount + whenever config changes
     useEffect(() => {
         applyTheme(config);
 
-        // Listener for system theme changes if in system mode
         if (config.colorMode === 'system') {
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
             const handler = () => applyTheme(config);
@@ -199,7 +176,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     const updateConfig = (partial: Partial<ThemeConfig>) => {
         setConfig((prev) => {
-            // Auto sync themeId when colorMode changes manually
             let newThemeId = prev.themeId;
             if (partial.colorMode) {
                 if (partial.colorMode === 'light') newThemeId = 'light';
@@ -209,7 +185,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
                 if (partial.themeId === 'light') partial.colorMode = 'light';
                 else partial.colorMode = 'dark';
             }
-            
+
             return { ...prev, themeId: newThemeId, ...partial };
         });
     };
@@ -232,10 +208,4 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             {children}
         </ThemeContext.Provider>
     );
-}
-
-export function useTheme() {
-    const ctx = useContext(ThemeContext);
-    if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
-    return ctx;
 }

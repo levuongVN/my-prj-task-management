@@ -166,7 +166,7 @@ export default function ProjectsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0d0d0d] px-7 py-7 font-sans">
+        <div className="px-7 py-7 font-sans">
             <ProjectPageHeader onCreate={() => setIsCreateOpen(true)} />
 
             <ProjectToolbar

@@ -11,7 +11,6 @@ import type { UserDto } from "../../user/types/UserDto";
 
 export function ProfileSection() {
     const { data: user, isLoading } = useUser();
-    console.log("user", user);
 
     if (isLoading) {
         return <Loading text="Loading profile..." />;
