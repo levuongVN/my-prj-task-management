@@ -45,12 +45,12 @@ export function CreateEventModal({
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Create new event">
-            <div className="flex gap-2 mb-6 bg-zinc-900 p-1 rounded-xl">
+            <div className="flex gap-2 mb-6 border border-border-subtle bg-zinc-900 p-1 rounded-xl">
                 {tabs.map((tab) => (
                     <button
                         key={tab.key}
                         onClick={() => onTabChange(tab.key)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.key ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.key ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
                             }`}
                     >
                         {tab.icon}

@@ -31,7 +31,7 @@ export function AnalyticsHeader({ period, selectedDate, onPeriodChange, onDateCh
                             onClick={() => onPeriodChange(p)}
                             className={`rounded-[9px] px-3.5 py-1.5 text-xs font-medium capitalize transition-all ${period === p
                                 ? "bg-white text-black"
-                                : "text-zinc-500 hover:text-zinc-300"
+                                : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
                                 }`}
                         >
                             {p}

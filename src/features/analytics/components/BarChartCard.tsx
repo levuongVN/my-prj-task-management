@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Bar } from "react-chartjs-2";
 import { Activity } from "lucide-react";
 import { chartDefaults, gridColor, tickColor } from "../charts/chartSetup";
@@ -9,7 +10,7 @@ interface BarChartCardProps {
     period: PeriodKey;
 }
 
-export function BarChartCard({ analytics, period }: BarChartCardProps) {
+function BarChartCardInner({ analytics, period }: BarChartCardProps) {
     const barChartData = {
         labels: analytics?.activityTrend.map(x => x.label) ?? [],
         datasets: [
@@ -81,3 +82,6 @@ export function BarChartCard({ analytics, period }: BarChartCardProps) {
         </div>
     );
 }
+
+const BarChartCard = memo(BarChartCardInner);
+export { BarChartCard };

@@ -2,7 +2,7 @@ import { useProjectFilters } from '../shared/hooks/ProjectFilter';
 import type { Project } from '../shared/types/Project';
 import { PROJECT_STATUS_REVERSE } from '../constants/projectConst';
 import Section from '../features/project/components/ProjectSection';
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Modal from '../shared/components/Ui/Modal';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,7 +29,7 @@ export default function ProjectsPage() {
     const updateProjectMutation = useUpdateProject();
     const deleteProjectMutation = useDeleteProject();
 
-    const projects: Project[] = rawProjects.map((p) => ({
+    const projects: Project[] = useMemo(() => rawProjects.map((p) => ({
         id: p.id,
         name: p.name,
         description: p.description ?? undefined,
@@ -38,7 +38,7 @@ export default function ProjectsPage() {
         progress: p.progress,
         overdue: new Date(p.due) < new Date() && p.status !== 1,
         taskIds: [],
-    }));
+    })), [rawProjects]);
 
     // ── Filter / Sort ─────────────────────────────────────
     const {
@@ -55,19 +55,23 @@ export default function ProjectsPage() {
         isEmpty,
     } = useProjectFilters(projects);
 
+    const activeProjects = useMemo(() => byStatus(0), [byStatus]);
+    const completedProjects = useMemo(() => byStatus(1), [byStatus]);
+    const archivedProjects = useMemo(() => byStatus(2), [byStatus]);
+
     // ── Detail panel ──────────────────────────────────────
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-    const handleOpenDetail = (project: Project) => {
+    const handleOpenDetail = useCallback((project: Project) => {
         setSelectedProject(project);
         setIsDetailOpen(true);
-    };
+    }, []);
 
-    const handleCloseDetail = () => {
+    const handleCloseDetail = useCallback(() => {
         setIsDetailOpen(false);
         setTimeout(() => setSelectedProject(null), 300); // chờ animation đóng xong
-    };
+    }, []);
 
     // ── Edit modal ────────────────────────────────────────
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -187,9 +191,9 @@ export default function ProjectsPage() {
                 </div>
             ) : (
                 <>
-                    <Section status={0} projects={byStatus(0)} onProjectClick={handleOpenDetail} />
-                    <Section status={1} projects={byStatus(1)} onProjectClick={handleOpenDetail} />
-                    <Section status={2} projects={byStatus(2)} onProjectClick={handleOpenDetail} />
+                    <Section status={0} projects={activeProjects} onProjectClick={handleOpenDetail} />
+                    <Section status={1} projects={completedProjects} onProjectClick={handleOpenDetail} />
+                    <Section status={2} projects={archivedProjects} onProjectClick={handleOpenDetail} />
 
                     {isEmpty && (
                         <div className="flex flex-col items-center justify-center py-20 text-center">

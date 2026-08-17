@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { EVENT_ICONS, EVENT_STYLES } from "../../../constants/calendarConst";
 import type { CalendarEvent } from "../../../shared/types/Calendar";
 
@@ -6,7 +7,7 @@ interface Props {
     onClick?: (event: CalendarEvent) => void;
 }
 
-export default function EventPill({ event, onClick }: Props) {
+function EventPillInner({ event, onClick }: Props) {
     const s = EVENT_STYLES[event.type];
     return (
         <div 
@@ -26,3 +27,6 @@ export default function EventPill({ event, onClick }: Props) {
         </div>
     );
 }
+
+const EventPill = memo(EventPillInner);
+export default EventPill;

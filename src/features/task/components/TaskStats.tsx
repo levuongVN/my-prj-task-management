@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { statuses } from "../../../constants/taskOption"
 import type { Task } from "../../../shared/types/Task"
 
@@ -6,7 +7,8 @@ interface Props {
     tasks: Task[]
 }
 
-export default function TaskStats({ tasks }: Props) {
+function TaskStatsInner({ tasks }: Props) {
+    console.log("🔄 TaskStats rendered | tasks count:", tasks.length);
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
             <div className="rounded-3xl border border-white/5 bg-zinc-950 p-6">
@@ -45,3 +47,6 @@ export default function TaskStats({ tasks }: Props) {
         </div>
     )
 }
+
+const TaskStats = memo(TaskStatsInner);
+export default TaskStats;

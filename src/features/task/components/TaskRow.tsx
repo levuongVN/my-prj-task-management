@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { CheckCircle2, Clock3 } from "lucide-react";
 import CustomSelect from "../../../shared/components/Ui/CustomSelect";
 import type { Task } from "../../../shared/types/Task";
@@ -9,12 +10,13 @@ interface TaskRowProps {
     onStatusChange: (id: string, value: number) => void
 }
 
-export default function TaskRow({
+function TaskRowInner({
     task,
     onView,
     onPriorityChange,
     onStatusChange,
 }: TaskRowProps) {
+    console.log("🔄 TaskRow rendered:", task.title, "| priority:", task.priority);
     const formatDate = (date: string) => date.substring(0, 10);
     return (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 px-6 py-6 border-b border-white/5 hover:bg-white/[0.02] transition">
@@ -94,3 +96,6 @@ export default function TaskRow({
         </div>
     )
 }
+
+const TaskRow = memo(TaskRowInner);
+export default TaskRow;

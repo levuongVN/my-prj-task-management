@@ -1,14 +1,14 @@
-import { useMemo, useState } from "react";
-import { 
-    DndContext, 
-    DragOverlay, 
-    closestCorners, 
-    KeyboardSensor, 
-    PointerSensor, 
-    useSensor, 
-    useSensors, 
-    type DragStartEvent, 
-    type DragEndEvent 
+import { useCallback, useMemo, useState } from "react";
+import {
+    DndContext,
+    DragOverlay,
+    closestCorners,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DragStartEvent,
+    type DragEndEvent
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import TaskColumn from "./TaskColumn";
@@ -46,37 +46,34 @@ export default function TaskBoard({ tasks, onStatusChange, onViewTask }: TaskBoa
         });
     }, [tasks]);
 
-    const handleDragStart = (event: DragStartEvent) => {
-        const { active } = event;
-        if (active.data.current?.type === "Task") {
-            setActiveTask(active.data.current.task);
-        }
-    };
+    const handleDragStart = useCallback(() => {
+        return (event: DragStartEvent) => {
+            const { active } = event;
+            const activeTaskData = active.data.current?.task as Task;
+            if (activeTaskData) {
+                setActiveTask(activeTaskData);
+            }
+        };
+    }, [])
 
-    const handleDragEnd = (event: DragEndEvent) => {
-        const { active, over } = event;
-        setActiveTask(null);
+    const handleDragEnd = useCallback(() => {
+        return (event: DragEndEvent) => {
+            const { active, over } = event;
+            if (!over) {
+                setActiveTask(null);
+                return;
+            }
 
-        if (!over) return;
+            const activeTaskData = active.data.current?.task as Task;
+            const overColumnData = over.data.current?.statusId as number;
 
-        const activeTaskId = active.id as string;
-        const activeTaskData = active.data.current?.task as Task;
-        const overType = over.data.current?.type;
+            if (activeTaskData && overColumnData !== undefined && activeTaskData.status !== overColumnData) {
+                onStatusChange(activeTaskData.id, overColumnData);
+            }
 
-        if (!activeTaskData) return;
-
-        let newStatus = activeTaskData.status;
-
-        if (overType === "Column") {
-            newStatus = over.data.current?.statusId;
-        } else if (overType === "Task") {
-            newStatus = over.data.current?.task.status;
-        }
-
-        if (activeTaskData.status !== newStatus) {
-            onStatusChange(activeTaskId, newStatus);
-        }
-    };
+            setActiveTask(null);
+        };
+    }, [onStatusChange]);
 
     return (
         <DndContext
@@ -87,20 +84,21 @@ export default function TaskBoard({ tasks, onStatusChange, onViewTask }: TaskBoa
         >
             <div className="flex gap-6 overflow-x-auto pb-4 h-full min-h-[500px]">
                 {columns.map(col => (
-                    <TaskColumn 
-                        key={col.id} 
-                        id={col.id} 
-                        title={col.title} 
-                        tasks={col.tasks} 
-                        onViewTask={onViewTask} 
+                    <TaskColumn
+                        key={col.id}
+                        id={col.id}
+                        title={col.title}
+                        tasks={col.tasks}
+                        onViewTask={onViewTask}
                     />
                 ))}
             </div>
 
+            {/* when pull task will display the task card  */}
             <DragOverlay>
                 {activeTask ? (
                     <div className="rotate-2 scale-105 transition-transform cursor-grabbing">
-                        <TaskCard task={activeTask} onView={() => {}} isOverlay />
+                        <TaskCard task={activeTask} onView={() => { }} isOverlay />
                     </div>
                 ) : null}
             </DragOverlay>

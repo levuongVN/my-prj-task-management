@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { CheckCircle2, FolderKanban, MessageSquare, Server } from "lucide-react";
 import type { Notification } from "../types";
 
@@ -31,7 +32,7 @@ interface Props {
     onRead: (id: string) => void;
 }
 
-export function NotificationItem({ notification, onRead }: Props) {
+function NotificationItemInner({ notification, onRead }: Props) {
     const Icon = TYPE_ICON[notification.type];
 
     return (
@@ -61,3 +62,6 @@ export function NotificationItem({ notification, onRead }: Props) {
         </button>
     );
 }
+
+const NotificationItem = memo(NotificationItemInner);
+export { NotificationItem };

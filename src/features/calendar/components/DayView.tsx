@@ -41,7 +41,7 @@ export default function DayView({ date, allEvents, onNewEvent, onEventClick }: P
                         <p className="text-sm text-zinc-700">No events on this day</p>
                         <button
                             onClick={onNewEvent}
-                            className="mt-3 flex items-center gap-1.5 rounded-xl border border-white/10 px-3.5 py-2 text-xs font-medium text-zinc-500 hover:text-zinc-300 transition-colors"
+                            className="mt-3 flex items-center gap-1.5 rounded-xl border border-white/10 px-3.5 py-2 text-xs font-medium text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-colors"
                         >
                             <Plus size={12} /> Add event
                         </button>

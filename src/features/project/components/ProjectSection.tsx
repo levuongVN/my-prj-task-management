@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { PROJECT_STATUS_MAP, STATUS_CONFIG } from "../../../constants/projectConst";
 import type { Project } from "../../../shared/types/Project";
 import ProjectCard from "./ProjectCard";
@@ -8,7 +9,7 @@ interface Props {
     onProjectClick?: (project: Project) => void;
 }
 
-export default function Section({ status, projects, onProjectClick }: Props) {
+function SectionInner({ status, projects, onProjectClick }: Props) {
     if (projects.length === 0) return null;
     const statusKey = PROJECT_STATUS_MAP[status] ?? "active";
     const cfg = STATUS_CONFIG[statusKey];
@@ -32,3 +33,6 @@ export default function Section({ status, projects, onProjectClick }: Props) {
         </div>
     );
 }
+
+const Section = memo(SectionInner);
+export default Section;

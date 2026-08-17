@@ -102,16 +102,16 @@ export function TaskToolbar({
                 onSortOrderChange={onSortOrderChange}
             />
             
-            <div className="flex bg-zinc-900 rounded-xl p-1 h-14 items-center shrink-0">
+            <div className="flex border border-border-subtle bg-zinc-900 rounded-xl p-1 h-14 items-center shrink-0">
                 <button 
                     onClick={() => onViewModeChange('list')}
-                    className={`h-full px-4 rounded-lg flex items-center justify-center transition ${viewMode === 'list' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
+                    className={`h-full px-4 rounded-lg flex items-center justify-center transition ${viewMode === 'list' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
                 >
                     <List size={20} />
                 </button>
                 <button 
                     onClick={() => onViewModeChange('board')}
-                    className={`h-full px-4 rounded-lg flex items-center justify-center transition ${viewMode === 'board' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white'}`}
+                    className={`h-full px-4 rounded-lg flex items-center justify-center transition ${viewMode === 'board' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
                 >
                     <LayoutGrid size={20} />
                 </button>

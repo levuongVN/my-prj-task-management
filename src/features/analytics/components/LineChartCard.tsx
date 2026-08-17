@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Line } from "react-chartjs-2";
 import { TrendingUp } from "lucide-react";
 import { chartDefaults, gridColor, tickColor } from "../charts/chartSetup";
@@ -9,7 +10,7 @@ interface LineChartCardProps {
     period: PeriodKey;
 }
 
-export function LineChartCard({ analytics, period }: LineChartCardProps) {
+function LineChartCardInner({ analytics, period }: LineChartCardProps) {
     const lineChartData = {
         labels: analytics?.completionTrend.map(x => x.label) ?? [],
         datasets: [
@@ -87,3 +88,6 @@ export function LineChartCard({ analytics, period }: LineChartCardProps) {
         </div>
     );
 }
+
+const LineChartCard = memo(LineChartCardInner);
+export { LineChartCard };

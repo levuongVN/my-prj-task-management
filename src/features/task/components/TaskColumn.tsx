@@ -3,6 +3,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import TaskCard from "./TaskCard";
 import type { Task } from "../../../shared/types/Task";
 import clsx from "clsx";
+import { memo } from "react";
 
 interface TaskColumnProps {
     id: string; // The status value (0, 1, 2, 3) as string
@@ -11,7 +12,7 @@ interface TaskColumnProps {
     onViewTask: (task: Task) => void;
 }
 
-export default function TaskColumn({ id, title, tasks, onViewTask }: TaskColumnProps) {
+function TaskColumnInner({ id, title, tasks, onViewTask }: TaskColumnProps) {
     const { setNodeRef, isOver } = useDroppable({
         id,
         data: { type: "Column", statusId: parseInt(id) }
@@ -54,3 +55,5 @@ export default function TaskColumn({ id, title, tasks, onViewTask }: TaskColumnP
         </div>
     );
 }
+const TaskColumn = memo(TaskColumnInner);
+export default TaskColumn;

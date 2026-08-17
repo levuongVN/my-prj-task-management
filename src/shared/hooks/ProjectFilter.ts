@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import type { Project } from "../types/Project";
 
 type SortBy = "name" | "due" | "progress" | "status";
@@ -65,16 +65,18 @@ export function useProjectFilters(projects: Project[]) {
         });
     }, [filtered, sortBy, sortOrder]);
 
-    const clearFilters = () => {
+    const clearFilters = useCallback(() => {
         setSelectedStatuses([]);
         setSearch("");
-    };
+    }, []);
 
-    const toggleStatus = (status: number) => {
+    const toggleStatus = useCallback((status: number) => {
         setSelectedStatuses((prev) =>
             prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
         );
-    };
+    }, []);
+
+    const byStatus = useCallback((s: number) => sorted.filter((p) => p.status === s), [sorted]);
 
     return {
         search,
@@ -89,6 +91,6 @@ export function useProjectFilters(projects: Project[]) {
         clearFilters,
         result: sorted,
         isEmpty: sorted.length === 0,
-        byStatus: (s: number) => sorted.filter((p) => p.status === s),
+        byStatus,
     };
 }

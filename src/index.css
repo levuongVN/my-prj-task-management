@@ -122,7 +122,7 @@ html.theme-light .text-amber-300   { color: #b45309 !important; }
 
 /* ── Hover text states (white→dark on light) ─────────────────────────────────── */
 html.theme-light .hover\:text-white:hover     { color: var(--text-primary) !important; }
-html.theme-light .hover\:text-zinc-300:hover  { color: var(--text-secondary) !important; }
+html.theme-light .hover\:text-zinc-300:hover  { color: var(--text-primary) !important; }
 html.theme-light .hover\:text-zinc-400:hover  { color: var(--text-secondary) !important; }
 html.theme-light .hover\:text-zinc-200:hover  { color: var(--text-primary) !important; }
 html.theme-light .hover\:text-zinc-500:hover  { color: var(--text-secondary) !important; }

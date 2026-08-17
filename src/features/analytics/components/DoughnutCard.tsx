@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Doughnut } from "react-chartjs-2";
 import { chartDefaults, tickColor } from "../charts/chartSetup";
 import type { AnalyticsData } from "../types";
@@ -6,7 +7,7 @@ interface DoughnutCardProps {
     analytics: AnalyticsData | undefined;
 }
 
-export function DoughnutCard({ analytics }: DoughnutCardProps) {
+function DoughnutCardInner({ analytics }: DoughnutCardProps) {
     const priorityDoughnut = {
         labels: ["High", "Medium", "Low"],
         datasets: [
@@ -95,3 +96,6 @@ export function DoughnutCard({ analytics }: DoughnutCardProps) {
         </div>
     );
 }
+
+const DoughnutCard = memo(DoughnutCardInner);
+export { DoughnutCard };

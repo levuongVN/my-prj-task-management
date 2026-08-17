@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import TaskHeader from "../features/task/components/TaskHeader";
 import TaskStats from "../features/task/components/TaskStats";
 import TaskTableHeader from "../features/task/components/TaskTableHeader";
@@ -36,10 +36,9 @@ export default function TaskPage() {
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
-    const selectedTask =
-        tasks.find((task) => task.id === selectedTaskId) ?? null;
+    const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
 
-    const filteredTasks = tasks.filter((task) => {
+    const filteredTasks = useMemo(() => tasks.filter((task) => {
         const matchesSearch =
             task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (task.description ?? "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -57,8 +56,9 @@ export default function TaskPage() {
             matchesPriority &&
             matchesStatus
         );
-    });
-    const sortedTasks = [...filteredTasks].sort((a, b) => {
+    }), [tasks, searchTerm, selectedPriorities, selectedStatuses]);
+
+    const sortedTasks = useMemo(() => [...filteredTasks].sort((a, b) => {
         switch (sortBy) {
             case "title":
                 return sortOrder === "asc"
@@ -78,9 +78,9 @@ export default function TaskPage() {
             default:
                 return 0;
         }
-    });
+    }), [filteredTasks, sortBy, sortOrder]);
 
-    const handlePriorityChange = (id: string, priority: number) => {
+    const handlePriorityChange = useCallback((id: string, priority: number) => {
         const task = tasks.find((t) => t.id === id);
         if (!task) return;
         updateTaskMutation.mutate({
@@ -94,9 +94,9 @@ export default function TaskPage() {
                 deadline: task.deadline,
             },
         })
-    };
+    }, [tasks, updateTaskMutation]);
 
-    const handleStatusChange = (id: string, status: number) => {
+    const handleStatusChange = useCallback((id: string, status: number) => {
         const task = tasks.find((t) => t.id === id);
         if (!task) return;
         updateTaskMutation.mutate({
@@ -110,7 +110,12 @@ export default function TaskPage() {
                 deadline: task.deadline,
             },
         })
-    };
+    }, [tasks, updateTaskMutation]);
+
+    const handleViewTask = useCallback((task: { id: string }) => {
+        setSelectedTaskId(task.id);
+        setIsViewOpen(true);
+    }, []);
 
     if (isLoading) {
         return <Loading fullScreen />;
@@ -149,7 +154,7 @@ export default function TaskPage() {
             />
 
             {/* Stats */}
-            <TaskStats tasks={tasks.map((t) => ({ ...t, deadline: t.deadline ?? undefined }))} />
+            <TaskStats tasks={tasks} />
 
             {/* Task List / Board */}
             {viewMode === "list" ? (
@@ -161,11 +166,8 @@ export default function TaskPage() {
                         {sortedTasks.map((task) => (
                             <TaskRow
                                 key={task.id}
-                                task={{ ...task, deadline: task.deadline ?? undefined }}
-                                onView={(task) => {
-                                    setSelectedTaskId(task.id);
-                                    setIsViewOpen(true);
-                                }}
+                                task={task}
+                                onView={handleViewTask}
                                 onPriorityChange={handlePriorityChange}
                                 onStatusChange={handleStatusChange}
                             />
@@ -176,10 +178,7 @@ export default function TaskPage() {
                 <TaskBoard 
                     tasks={sortedTasks} 
                     onStatusChange={handleStatusChange} 
-                    onViewTask={(task) => {
-                        setSelectedTaskId(task.id);
-                        setIsViewOpen(true);
-                    }}
+                    onViewTask={handleViewTask}
                 />
             )}
 
@@ -232,7 +231,7 @@ export default function TaskPage() {
             </Modal>
             <TaskDetailModal
                 isOpen={isViewOpen}
-                task={selectedTask ? { ...selectedTask, deadline: selectedTask.deadline ?? undefined } : null}
+                task={selectedTask}
                 onClose={() => {
                     setIsViewOpen(false);
                     setSelectedTaskId(null);

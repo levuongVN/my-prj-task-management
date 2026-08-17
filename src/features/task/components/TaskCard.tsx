@@ -5,6 +5,7 @@ import { TASK_PRIORITY_MAP } from "../../../constants/taskOption";
 import { format } from "date-fns";
 import clsx from "clsx";
 import type { Task } from "../../../shared/types/Task";
+import { memo } from "react";
 
 interface TaskCardProps {
     task: Task;
@@ -12,7 +13,7 @@ interface TaskCardProps {
     isOverlay?: boolean;
 }
 
-export default function TaskCard({ task, onView, isOverlay }: TaskCardProps) {
+function TaskCardInner({ task, onView, isOverlay }: TaskCardProps) {
     const {
         attributes,
         listeners,
@@ -73,3 +74,6 @@ export default function TaskCard({ task, onView, isOverlay }: TaskCardProps) {
         </div>
     );
 }
+
+const TaskCard = memo(TaskCardInner);
+export default TaskCard;

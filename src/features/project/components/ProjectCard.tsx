@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Calendar } from "lucide-react";
 import { PROJECT_ICONS, PROJECT_STATUS_MAP, STATUS_CONFIG } from "../../../constants/projectConst";
 import type { Project } from "../../../shared/types/Project";
@@ -8,7 +9,7 @@ interface Props {
     onClick?: () => void;
 }
 
-export default function ProjectCard({ project, onClick }: Props) {
+function ProjectCardInner({ project, onClick }: Props) {
     const statusKey = PROJECT_STATUS_MAP[project.status] ?? "active";
     const cfg = STATUS_CONFIG[statusKey];
     const icon = PROJECT_ICONS[Number(project.id)] ?? PROJECT_ICONS[1];
@@ -57,3 +58,6 @@ export default function ProjectCard({ project, onClick }: Props) {
         </div>
     );
 }
+
+const ProjectCard = memo(ProjectCardInner);
+export default ProjectCard;

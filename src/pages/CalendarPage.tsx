@@ -157,7 +157,7 @@ export default function CalendarPage() {
                 onClose={handleCloseProjectPanel}
                 onEdit={handleOpenEdit}
                 onDelete={handleDeleteProject}
-                isLoading = {isMutating}
+                isLoading={isMutating}
             />
         </div>
     );

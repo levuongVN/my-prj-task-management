@@ -12,11 +12,11 @@ export function CalendarToolbar({ navLabel, onBack, onForward }: Props) {
     return (
         <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-                <button onClick={onBack} className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/8 bg-[#1a1a1a] text-zinc-500 hover:text-zinc-300 transition-colors">
+                <button onClick={onBack} className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/8 bg-[#1a1a1a] text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-colors">
                     <ChevronLeft size={14} />
                 </button>
                 <span className="min-w-[160px] text-center text-base font-medium text-white">{navLabel}</span>
-                <button onClick={onForward} className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/8 bg-[#1a1a1a] text-zinc-500 hover:text-zinc-300 transition-colors">
+                <button onClick={onForward} className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/8 bg-[#1a1a1a] text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-colors">
                     <ChevronRight size={14} />
                 </button>
             </div>
