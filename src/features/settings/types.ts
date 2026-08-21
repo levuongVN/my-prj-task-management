@@ -1,6 +1,6 @@
 import type { ThemeId, AccentId } from "../../contexts/ThemeContext";
 
-export type SettingSection = "appearance" | "profile" | "notifications" | "account";
+export type SettingSection = "appearance" | "profile" | "notifications" | "account" | "devices";
 
 export interface ThemePreset {
     id: ThemeId;

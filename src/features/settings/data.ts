@@ -1,4 +1,4 @@
-import { User, Palette, Bell, Shield } from "lucide-react";
+import { User, Palette, Bell, Shield, Monitor } from "lucide-react";
 import type { SettingSection, ThemePreset, AccentColor } from "./types";
 
 export const THEME_PRESETS: ThemePreset[] = [
@@ -26,4 +26,5 @@ export const SIDEBAR_ITEMS: { id: SettingSection; icon: typeof User; label: stri
     { id: "profile",    icon: User,    label: "Profile" },
     { id: "notifications", icon: Bell, label: "Notifications" },
     { id: "account",    icon: Shield,  label: "Account & Security" },
+    { id: "devices",    icon: Monitor, label: "Devices" },
 ];

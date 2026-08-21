@@ -4,6 +4,7 @@ import { AppearanceSection } from "../features/settings/components/AppearanceSec
 import { ProfileSection } from "../features/settings/components/ProfileSection";
 import { NotificationsSection } from "../features/settings/components/NotificationsSection";
 import { AccountSection } from "../features/settings/components/AccountSection";
+import { DeviceSection } from "../features/settings/components/DeviceSection";
 import { SettingsNavigation } from "../features/settings/components/SettingsNavigation";
 
 export default function SettingsPage() {
@@ -15,6 +16,7 @@ export default function SettingsPage() {
             case "profile":       return <ProfileSection />;
             case "notifications": return <NotificationsSection />;
             case "account":       return <AccountSection />;
+            case "devices":       return <DeviceSection />;
         }
     };
 

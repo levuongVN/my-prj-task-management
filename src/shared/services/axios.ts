@@ -5,6 +5,13 @@ const api = axios.create({
 })
 
 /**
+ * Shared refresh promise — chống gọi refresh đồng thời.
+ * Khi nhiều request 401 cùng lúc, chỉ gọi refresh 1 lần,
+ * các request khác chờ cùng promise đó.
+ */
+let refreshPromise: Promise<string> | null = null
+
+/**
  * REQUEST INTERCEPTOR
  * Tự động gắn access token
  */
@@ -31,45 +38,47 @@ api.interceptors.response.use(
     /**
      * Nếu access token expired
      */
-    if (error.response?.status === 401 &&!originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
+
       try {
-        const refreshToken = localStorage.getItem('refreshToken')
-        /** Gọi refresh token*/
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
-          {
-            refreshToken,
-          }
-        )
+        // Nếu đã có refresh đang chạy → dùng chung promise đó
+        if (!refreshPromise) {
+          const refreshToken = localStorage.getItem('refreshToken')
 
-        const newAccessToken = response.data.accessToken
+          refreshPromise = axios
+            .post(
+              `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
+              { refreshToken }
+            )
+            .then((res) => {
+              const { accessToken, refreshToken: newRefresh, user } = res.data
 
-        /**
-         * Lưu access token mới
-         */
-        localStorage.setItem(
-          'accessToken',
-          newAccessToken
-        )
+              localStorage.setItem('accessToken', accessToken)
+              localStorage.setItem('refreshToken', newRefresh.token)
+              if (user) {
+                localStorage.setItem('user', JSON.stringify(user))
+              }
 
-        /**
-         * Gắn lại token cho request cũ
-         */
-        originalRequest.headers.Authorization =
-          `Bearer ${newAccessToken}`
+              return accessToken
+            })
+            .finally(() => {
+              refreshPromise = null
+            })
+        }
 
-        /**
-         * Retry request cũ
-         */
+        const newAccessToken = await refreshPromise
+
+        // Gắn lại token cho request cũ
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+
+        // Retry request cũ
         return api(originalRequest)
       } catch (refreshError) {
-        /**
-         * Refresh token cũng chết
-         * => logout
-         */
+        // Refresh token cũng chết → logout
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
+        localStorage.removeItem('user')
 
         window.location.href = '/login'
 

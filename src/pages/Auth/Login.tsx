@@ -20,6 +20,7 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
 import { login } from '../../features/auth/services/auth.service'
+import { getDeviceFingerprint } from '../../features/auth/utils/fingerprint'
 
 export default function LoginPage() {
     const navigate = useNavigate()
@@ -36,6 +37,7 @@ export default function LoginPage() {
         onSuccess: (data) => {
             localStorage.setItem('accessToken', data.accessToken)
             localStorage.setItem('refreshToken', data.refreshToken.token)
+            localStorage.setItem('user', JSON.stringify(data.user))
             navigate('/dashboard');
         },
 
@@ -51,7 +53,13 @@ export default function LoginPage() {
     })
 
     const onSubmit = (data: LoginFormValues) => {
-        loginMutation.mutate(data)
+        loginMutation.mutate({
+            ...data,
+            device: {
+                fingerprint: getDeviceFingerprint(),
+                pushToken: null,
+            },
+        })
     }
     const [showPassword, setShowPassword] = useState(false)
     const [serverError, setServerError] = useState<string | null>(null)
