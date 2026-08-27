@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { changePassword } from "../../user/services/user.service";
 import { SectionTitle } from "./SectionTitle";
 import { SettingCard } from "./SettingCard";
+import { DeviceCard } from "./DeviceCard";
 
 export function AccountSection() {
     const [newPassword, setNewPassword] = useState("");
@@ -71,6 +72,8 @@ export function AccountSection() {
                     </button>
                 </div>
             </SettingCard>
+
+            <DeviceCard />
 
             <div className="rounded-2xl border border-red-500/15 bg-red-500/5 p-6">
                 <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-red-400/70">Danger Zone</p>
