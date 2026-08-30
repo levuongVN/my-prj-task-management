@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, Menu, Search } from "lucide-react";
 import { NotificationDropdown } from "../../features/notification/components/NotificationDropdown";
-import { useNotifications } from "../../features/notification/hooks/useNotifications";
+import { useNotificationStore } from "../../features/notification/store/notificationStore";
 
 interface TopbarProps {
     onMenuToggle: () => void;
@@ -10,7 +10,7 @@ interface TopbarProps {
 export default function Topbar({ onMenuToggle }: TopbarProps) {
     const [open, setOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
-    const { unreadCount } = useNotifications();
+    const unreadCount = useNotificationStore((s) => s.unreadCount);
 
     useEffect(() => {
         if (!open) return;

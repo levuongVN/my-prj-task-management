@@ -1,9 +1,13 @@
 import { CheckCheck, Inbox } from "lucide-react";
-import { useNotifications } from "../hooks/useNotifications";
+import { useNotificationStore } from "../store/notificationStore";
 import { NotificationItem } from "./NotificationItem";
 
 export function NotificationDropdown() {
-    const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+    const notifications = useNotificationStore((s) => s.notifications);
+    const unreadCount = useNotificationStore((s) => s.unreadCount);
+    const isLoading = useNotificationStore((s) => s.isLoading);
+    const markAsRead = useNotificationStore((s) => s.markAsRead);
+    const markAllAsRead = useNotificationStore((s) => s.markAllAsRead);
 
     return (
         <div className="absolute right-0 top-full mt-2 w-[380px] rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl shadow-black/40">
@@ -31,7 +35,11 @@ export function NotificationDropdown() {
 
             {/* List */}
             <div className="max-h-[360px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-white/10">
-                {notifications.length === 0 ? (
+                {isLoading ? (
+                    <div className="flex justify-center py-10">
+                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                    </div>
+                ) : notifications.length === 0 ? (
                     <div className="flex flex-col items-center gap-3 py-10 text-zinc-500">
                         <Inbox size={32} strokeWidth={1.2} />
                         <p className="text-sm">No notifications yet</p>
