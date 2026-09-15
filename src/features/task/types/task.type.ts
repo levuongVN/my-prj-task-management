@@ -1,6 +1,6 @@
 export interface TaskPayload {
     title: string
-    description?: string
+    description?: string | null
     projectId?: string | null
     priority: number
     status: number

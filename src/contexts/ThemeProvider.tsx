@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { ThemeConfig, ThemeId, AccentId, FontSize } from './theme.types';
-import { ThemeContext } from './ThemeContext';
+import { ThemeContext } from './themeContext';
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
 

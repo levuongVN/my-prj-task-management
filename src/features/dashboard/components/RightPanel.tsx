@@ -1,13 +1,25 @@
 import { Bar } from "react-chartjs-2";
+import { CalendarClock, Inbox } from "lucide-react";
+import type { Meeting } from "../../../shared/types/Meeting";
 
+interface RightPanelProps {
+    weeklyProductivity: {
+        labels: string[];
+        counts: number[];
+        delta: number;
+    };
+    upcomingMeetings: Meeting[];
+}
 
-export default function RightPanel() {
+export default function RightPanel({ weeklyProductivity, upcomingMeetings }: RightPanelProps) {
+    const { labels, counts, delta } = weeklyProductivity;
+
     const productivityData = {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels,
         datasets: [
             {
                 label: 'Tasks Completed',
-                data: [12, 19, 9, 24, 17, 21, 15],
+                data: counts,
 
                 backgroundColor: '#ffffff',
 
@@ -43,10 +55,37 @@ export default function RightPanel() {
                 },
                 ticks: {
                     color: '#71717a',
+                    stepSize: 1,
+                    precision: 0,
                 },
+                beginAtZero: true,
             },
         },
     }
+
+    const deltaText = delta > 0 ? `+${delta}%` : `${delta}%`;
+
+    const formatMeetingTime = (startAt: string) => (
+        new Date(startAt).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+        })
+    );
+
+    const formatMeetingDay = (startAt: string) => {
+        const date = new Date(startAt);
+        const today = new Date();
+        const isToday = date.toDateString() === today.toDateString();
+
+        if (isToday) return "Today";
+
+        return date.toLocaleDateString("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+        });
+    };
+
     return (
         <div className="space-y-8">
 
@@ -59,12 +98,12 @@ export default function RightPanel() {
                         </h2>
 
                         <p className="mt-2 text-zinc-500">
-                            Weekly overview
+                            Last 7 days
                         </p>
                     </div>
 
-                    <div className="text-emerald-400 font-semibold">
-                        +18%
+                    <div className={delta >= 0 ? "text-emerald-400 font-semibold" : "text-red-400 font-semibold"}>
+                        {deltaText}
                     </div>
                 </div>
 
@@ -91,39 +130,34 @@ export default function RightPanel() {
                 </div>
 
                 <div className="mt-8 space-y-5">
-                    {[
-                        {
-                            title: 'Design Review Meeting',
-                            time: '09:00 AM',
-                        },
-                        {
-                            title: 'Sprint Planning',
-                            time: '01:30 PM',
-                        },
-                        {
-                            title: 'Team Sync',
-                            time: '04:00 PM',
-                        },
-                    ].map((item) => (
-                        <div
-                            key={item.title}
-                            className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.03] p-5"
-                        >
-                            <div>
-                                <h3 className="font-semibold tracking-tight">
-                                    {item.title}
-                                </h3>
-
-                                <p className="mt-2 text-sm text-zinc-500">
-                                    Today
-                                </p>
-                            </div>
-
-                            <div className="text-sm text-zinc-300 font-medium">
-                                {item.time}
-                            </div>
+                    {upcomingMeetings.length === 0 ? (
+                        <div className="flex flex-col items-center gap-3 py-10 text-zinc-500">
+                            <Inbox size={32} strokeWidth={1.2} />
+                            <p className="text-sm">No upcoming events</p>
                         </div>
-                    ))}
+                    ) : (
+                        upcomingMeetings.map((meeting) => (
+                            <div
+                                key={meeting.id}
+                                className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.03] p-5"
+                            >
+                                <div className="min-w-0">
+                                    <h3 className="font-semibold tracking-tight truncate">
+                                        {meeting.title}
+                                    </h3>
+
+                                    <p className="mt-2 flex items-center gap-1.5 text-sm text-zinc-500">
+                                        <CalendarClock size={14} />
+                                        {formatMeetingDay(meeting.startAt)}
+                                    </p>
+                                </div>
+
+                                <div className="text-sm text-zinc-300 font-medium flex-shrink-0">
+                                    {formatMeetingTime(meeting.startAt)}
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </section>
         </div>

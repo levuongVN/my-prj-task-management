@@ -1,6 +1,18 @@
-import { Plus, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight, Plus, Sparkles } from "lucide-react";
 
-export default function HeroSection() {
+interface HeroSectionProps {
+    stats: {
+        completedRate: number;
+        activeProjects: number;
+        overdueTasks: number;
+        upcomingTasks: number;
+    };
+}
+
+export default function HeroSection({ stats }: HeroSectionProps) {
+    const navigate = useNavigate();
+
     return (
         <section className="relative overflow-hidden rounded-[36px] border border-white/5 bg-bg-surface p-8 lg:p-10">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 blur-3xl rounded-full" />
@@ -22,13 +34,20 @@ export default function HeroSection() {
                     </p>
 
                     <div className="mt-8 flex flex-wrap items-center gap-4">
-                        <button className="h-14 px-7 rounded-2xl bg-accent text-accent-fg font-semibold hover:opacity-90 transition flex items-center gap-2">
+                        <button
+                            onClick={() => navigate("/tasks")}
+                            className="h-14 px-7 rounded-2xl bg-accent text-accent-fg font-semibold hover:opacity-90 transition flex items-center gap-2"
+                        >
                             <Plus size={18} />
-                            Create Task
+                            Manage Tasks
                         </button>
 
-                        <button className="h-14 px-7 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition font-medium">
+                        <button
+                            onClick={() => navigate("/analytics")}
+                            className="h-14 px-7 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition font-medium flex items-center gap-2"
+                        >
                             View Analytics
+                            <ArrowRight size={18} />
                         </button>
                     </div>
                 </div>
@@ -37,31 +56,31 @@ export default function HeroSection() {
                     {[
                         {
                             label: 'Tasks Completed',
-                            value: '84%',
+                            value: `${stats.completedRate}%`,
                             bg: 'from-emerald-500/15 to-emerald-500/5',
                             border: 'border-emerald-500/10',
                             valueColor: 'text-emerald-400',
                         },
                         {
                             label: 'Active Projects',
-                            value: '12',
+                            value: `${stats.activeProjects}`,
                             bg: 'from-blue-500/15 to-blue-500/5',
                             border: 'border-blue-500/10',
                             valueColor: 'text-blue-400',
                         },
                         {
-                            label: 'Team Members',
-                            value: '24',
-                            bg: 'from-purple-500/15 to-purple-500/5',
-                            border: 'border-purple-500/10',
-                            valueColor: 'text-purple-400',
+                            label: 'Overdue Tasks',
+                            value: `${stats.overdueTasks}`,
+                            bg: 'from-red-500/15 to-red-500/5',
+                            border: 'border-red-500/10',
+                            valueColor: 'text-red-400',
                         },
                         {
-                            label: 'Productivity',
-                            value: '+18%',
-                            bg: 'from-orange-500/15 to-orange-500/5',
-                            border: 'border-orange-500/10',
-                            valueColor: 'text-orange-400',
+                            label: 'Due in 7 Days',
+                            value: `${stats.upcomingTasks}`,
+                            bg: 'from-amber-500/15 to-amber-500/5',
+                            border: 'border-amber-500/10',
+                            valueColor: 'text-amber-400',
                         },
                     ].map((item) => (
                         <div

@@ -1,4 +1,4 @@
-import type { ThemeId, AccentId } from "../../contexts/ThemeContext";
+import type { ThemeId, AccentId } from "../../contexts/theme.types";
 
 export type SettingSection = "appearance" | "profile" | "notifications" | "account";
 

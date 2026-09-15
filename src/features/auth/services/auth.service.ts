@@ -2,6 +2,7 @@ import api from '../../../shared/services/axios'
 import type {
   LoadingPayload,
   LoginResponse,
+  LogoutPayload,
 } from '../types/auth.type'
 
 export const login = async (
@@ -13,4 +14,8 @@ export const login = async (
   )
 
   return response.data
+}
+
+export const logout = async (payload: LogoutPayload): Promise<void> => {
+  await api.post('/auth/logout', payload)
 }

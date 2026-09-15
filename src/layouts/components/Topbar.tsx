@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, Menu, Search } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { NotificationDropdown } from "../../features/notification/components/NotificationDropdown";
 import { useNotificationStore } from "../../features/notification/store/notificationStore";
+import { GlobalSearch } from "../../features/search/components/GlobalSearch";
+import { ProfileMenu } from "./ProfileMenu";
 
 interface TopbarProps {
     onMenuToggle: () => void;
@@ -59,14 +61,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
 
                 <div className="flex items-center gap-3 lg:gap-4 flex-shrink-0">
 
-                    <div className="hidden md:flex items-center gap-3 h-14 px-5 rounded-2xl bg-white/5 border border-white/5 min-w-[280px] lg:min-w-[320px]">
-                        <Search size={18} className="text-zinc-500" />
-
-                        <input
-                            placeholder="Search tasks, projects..."
-                            className="bg-transparent outline-none text-sm flex-1 placeholder:text-zinc-500"
-                        />
-                    </div>
+                    <GlobalSearch />
 
                     {/* Bell + dropdown */}
                     <div ref={wrapperRef} className="relative">
@@ -85,9 +80,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
                         {open && <NotificationDropdown onClose={() => setOpen(false)} />}
                     </div>
 
-                    <div className="flex h-11 w-11 lg:h-14 lg:w-14 items-center justify-center rounded-2xl bg-accent text-accent-fg font-bold text-lg">
-                        V
-                    </div>
+                    <ProfileMenu />
                 </div>
             </div>
         </header>

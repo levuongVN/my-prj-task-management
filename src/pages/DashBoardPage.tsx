@@ -11,7 +11,7 @@ import {
 import HeroSection from '../features/dashboard/components/HeroSection'
 import TaskList from '../features/dashboard/components/TaskList'
 import RightPanel from '../features/dashboard/components/RightPanel'
-import { TASKS_MOCK } from '../mocks/calendarMock'
+import { useDashboardData } from '../features/dashboard/hooks/useDashboardData'
 
 ChartJS.register(
   CategoryScale,
@@ -22,48 +22,33 @@ ChartJS.register(
 )
 
 export default function DashboardPage() {
-  // const tasks = [
-  //   {
-  //     id: 1,
-  //     title: 'Design new landing page',
-  //     status: 'In Progress',
-  //     due: '20/05/2026',
-  //     priority: 'High',
-  //   },
-  //   {
-  //     id: 2,
-  //     title: 'Create task analytics module',
-  //     status: 'Todo',
-  //     due: '21/05/2026',
-  //     priority: 'Medium',
-  //   },
-  //   {
-  //     id: 3,
-  //     title: 'Implement notifications system',
-  //     status: 'Overdue',
-  //     due: '15/05/2026',
-  //     priority: 'Low',
-  //   },
-  // ]
-
-
+  const {
+    stats,
+    ongoingTasks,
+    upcomingMeetings,
+    weeklyProductivity,
+    isLoading,
+  } = useDashboardData();
 
   return (
     <div className="flex">
       {/* MAIN */}
-      <main className="flex-1 min-w-0">
+      <main className="flex-1 min-w-0 p-6">
 
         {/*HERO SECTION */}
-        <HeroSection />
+        <HeroSection stats={stats} />
 
         {/* CONTENT */}
-        <div className="grid grid-cols-1 2xl:grid-cols-[1.4fr_0.8fr] gap-8">
+        <div className="mt-8 grid grid-cols-1 2xl:grid-cols-[1.4fr_0.8fr] gap-8">
 
           {/* TASK LIST */}
-          <TaskList tasks={TASKS_MOCK} />
+          <TaskList tasks={ongoingTasks} isLoading={isLoading} />
 
           {/* RIGHT PANEL */}
-          <RightPanel />
+          <RightPanel
+            weeklyProductivity={weeklyProductivity}
+            upcomingMeetings={upcomingMeetings}
+          />
         </div>
       </main>
     </div>

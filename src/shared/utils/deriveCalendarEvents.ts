@@ -45,13 +45,13 @@ export function deriveCalendarEvents(
 
     // Meetings
     for (const meeting of meetings) {
-        let datePart = "";
+        let datePart: string;
         let timePart = "";
         try {
             const [d, t] = meeting.startAt.split("T");
             datePart = d;
             timePart = t.substring(0, 5); // "09:00"
-        } catch (e) {
+        } catch {
             datePart = meeting.startAt;
         }
 

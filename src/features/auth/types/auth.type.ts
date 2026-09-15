@@ -15,6 +15,10 @@ export interface RefreshTokenData {
     isRevoked: boolean;
 }
 
+export interface LogoutPayload {
+    refreshToken: string;
+}
+
 export interface UserData {
     id: string;
     email: string;
