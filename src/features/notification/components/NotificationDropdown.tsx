@@ -1,13 +1,30 @@
-import { CheckCheck, Inbox } from "lucide-react";
+import { ArrowRight, CheckCheck, Inbox } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useNotificationStore } from "../store/notificationStore";
+import { resolveNotificationTarget } from "../utils/resolveNotificationTarget";
 import { NotificationItem } from "./NotificationItem";
 
-export function NotificationDropdown() {
+interface NotificationDropdownProps {
+    onClose?: () => void;
+}
+
+export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
+    const navigate = useNavigate();
     const notifications = useNotificationStore((s) => s.notifications);
     const unreadCount = useNotificationStore((s) => s.unreadCount);
     const isLoading = useNotificationStore((s) => s.isLoading);
     const markAsRead = useNotificationStore((s) => s.markAsRead);
     const markAllAsRead = useNotificationStore((s) => s.markAllAsRead);
+
+    const handleOpenNotification = (notification: Parameters<typeof resolveNotificationTarget>[0]) => {
+        const target = resolveNotificationTarget(notification);
+        const search = new URLSearchParams(target.search);
+        onClose?.();
+        navigate({
+            pathname: target.path,
+            search: search.toString() ? `?${search.toString()}` : "",
+        });
+    };
 
     return (
         <div className="absolute right-0 top-full mt-2 w-[380px] rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl shadow-black/40">
@@ -47,10 +64,29 @@ export function NotificationDropdown() {
                 ) : (
                     <div className="space-y-0.5">
                         {notifications.map((n) => (
-                            <NotificationItem key={n.id} notification={n} onRead={markAsRead} />
+                            <NotificationItem
+                                key={n.id}
+                                notification={n}
+                                onRead={markAsRead}
+                                onOpen={handleOpenNotification}
+                            />
                         ))}
                     </div>
                 )}
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-white/8 p-2">
+                <button
+                    onClick={() => {
+                        onClose?.();
+                        navigate("/notifications");
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/5 hover:text-white"
+                >
+                    All Notifications
+                    <ArrowRight size={15} />
+                </button>
             </div>
         </div>
     );

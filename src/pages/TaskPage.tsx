@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import TaskHeader from "../features/task/components/TaskHeader";
 import TaskStats from "../features/task/components/TaskStats";
 import TaskTableHeader from "../features/task/components/TaskTableHeader";
@@ -26,6 +27,7 @@ export default function TaskPage() {
     const { data: projects = [] } = useProjects();
     const createTaskMutation = useCreateTask();
     const updateTaskMutation = useUpdateTask();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
@@ -36,7 +38,20 @@ export default function TaskPage() {
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
-    const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
+    // Open task detail when navigated from a notification (?taskId=...)
+    const focusTaskId = searchParams.get("taskId");
+    const focusedTask = focusTaskId
+        ? tasks.find((task) => task.id === focusTaskId) ?? null
+        : null;
+    const selectedTask = focusedTask
+        ?? (selectedTaskId ? tasks.find((task) => task.id === selectedTaskId) ?? null : null);
+    const isDetailOpen = isViewOpen || focusedTask !== null;
+
+    const clearFocusParam = useCallback(() => {
+        if (!focusTaskId) return;
+        searchParams.delete("taskId");
+        setSearchParams(searchParams, { replace: true });
+    }, [focusTaskId, searchParams, setSearchParams]);
 
     const filteredTasks = useMemo(() => tasks.filter((task) => {
         const matchesSearch =
@@ -230,11 +245,12 @@ export default function TaskPage() {
                  />
             </Modal>
             <TaskDetailModal
-                isOpen={isViewOpen}
+                isOpen={isDetailOpen}
                 task={selectedTask}
                 onClose={() => {
                     setIsViewOpen(false);
                     setSelectedTaskId(null);
+                    clearFocusParam();
                 }}
             />
         </div>

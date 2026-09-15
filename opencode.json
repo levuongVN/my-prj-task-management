@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode-go/glm-5.3-flash",
+  "small_model": "opencode-go/glm-5.3-flash",
+  "agent": {
+    "build": {
+      "model": "opencode-go/glm-5.3-flash"
+    },
+    "general": {
+      "model": "opencode-go/glm-5.3-flash"
+    },
+    "explore": {
+      "model": "opencode-go/glm-5.3-flash"
+    },
+    "plan": {
+      "model": "opencode-go/deepseek-v4-pro"
+    }
+  },
+  "tool_output": {
+    "max_lines": 200,
+    "max_bytes": 8192
+  },
+  "compaction": {
+    "auto": true,
+    "tail_turns": 15
+  }
+}

@@ -1,4 +1,5 @@
 import {
+  Bell,
   CalendarDays,
   CheckCircle2,
   FolderKanban,
@@ -23,6 +24,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     { icon: FolderKanban,     label: 'Projects',  path: '/projects' },
     { icon: CalendarDays,     label: 'Calendar',  path: '/calendar' },
     { icon: TrendingUp,       label: 'Analytics', path: '/analytics' },
+    { icon: Bell,             label: 'Notifications', path: '/notifications' },
     { icon: Settings,         label: 'Settings',  path: '/settings' },
   ]
 

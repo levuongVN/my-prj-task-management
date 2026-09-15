@@ -3,6 +3,7 @@ import type { Project } from '../shared/types/Project';
 import { PROJECT_STATUS_REVERSE } from '../constants/projectConst';
 import Section from '../features/project/components/ProjectSection';
 import { useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Modal from '../shared/components/Ui/Modal';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -62,16 +63,31 @@ export default function ProjectsPage() {
     // ── Detail panel ──────────────────────────────────────
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const handleOpenDetail = useCallback((project: Project) => {
         setSelectedProject(project);
         setIsDetailOpen(true);
     }, []);
 
+    // Open project detail when navigated from a notification (?projectId=...)
+    const focusProjectId = searchParams.get('projectId');
+    const focusedProject = isLoading
+        ? null
+        : projects.find((p) => p.id === focusProjectId) ?? null;
+    const detailProject = focusedProject ?? selectedProject;
+    const isDetailPanelOpen = isDetailOpen || focusedProject !== null;
+
     const handleCloseDetail = useCallback(() => {
         setIsDetailOpen(false);
         setTimeout(() => setSelectedProject(null), 300); // chờ animation đóng xong
     }, []);
+
+    const clearFocusProjectParam = useCallback(() => {
+        if (!focusProjectId) return;
+        searchParams.delete('projectId');
+        setSearchParams(searchParams, { replace: true });
+    }, [focusProjectId, searchParams, setSearchParams]);
 
     // ── Edit modal ────────────────────────────────────────
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -126,6 +142,7 @@ export default function ProjectsPage() {
     const handleDeleteProject = (project: Project) => {
         deleteProjectMutation.mutate(project.id, {
             onSuccess: () => {
+                clearFocusProjectParam();
                 handleCloseDetail()
                 toast.success("Project deleted successfully");
             },
@@ -228,9 +245,12 @@ export default function ProjectsPage() {
 
             {/* Detail panel */}
             <ProjectDetailPanel
-                project={selectedProject}
-                isOpen={isDetailOpen}
-                onClose={handleCloseDetail}
+                project={detailProject}
+                isOpen={isDetailPanelOpen}
+                onClose={() => {
+                    clearFocusProjectParam();
+                    handleCloseDetail();
+                }}
                 onEdit={handleOpenEdit}
                 onDelete={handleDeleteProject}
                 isLoading={deleteProjectMutation.isPending}

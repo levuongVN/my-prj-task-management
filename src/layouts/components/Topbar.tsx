@@ -82,7 +82,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
                             )}
                         </button>
 
-                        {open && <NotificationDropdown />}
+                        {open && <NotificationDropdown onClose={() => setOpen(false)} />}
                     </div>
 
                     <div className="flex h-11 w-11 lg:h-14 lg:w-14 items-center justify-center rounded-2xl bg-accent text-accent-fg font-bold text-lg">

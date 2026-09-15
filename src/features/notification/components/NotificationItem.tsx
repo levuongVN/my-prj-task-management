@@ -28,14 +28,18 @@ function timeAgo(dateStr: string): string {
 interface Props {
     notification: Notification;
     onRead: (id: string) => void;
+    onOpen: (notification: Notification) => void;
 }
 
-function NotificationItemInner({ notification, onRead }: Props) {
+function NotificationItemInner({ notification, onRead, onOpen }: Props) {
     const Icon = TYPE_ICON[notification.type];
 
     return (
         <button
-            onClick={() => !notification.isRead && onRead(notification.id)}
+            onClick={() => {
+                if (!notification.isRead) onRead(notification.id);
+                onOpen(notification);
+            }}
             className={`flex w-full gap-3 rounded-xl px-3 py-3 text-left transition-colors ${
                 notification.isRead ? "bg-transparent" : "bg-blue-500/[0.06]"
             } hover:bg-white/5`}

@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Loading from "../shared/components/Ui/Loading";
 import MonthView from "../features/calendar/components/MonthView";
 import WeekView from "../features/calendar/components/WeekView";
@@ -60,12 +62,33 @@ export default function CalendarPage() {
         handleCloseMeetingPanel,
         handleEventClick,
         setSelectedDate,
+        meetings,
     } = useCalendarPage();
+
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const handleNavigateToDate = (date: string) => {
         setSelectedDate(date);
         setView("day");
     };
+
+    // Open meeting detail panel when navigated from a notification (?meetingId=...)
+    useEffect(() => {
+        const meetingId = searchParams.get("meetingId");
+        if (!meetingId || isLoading || meetings.length === 0) return;
+        if (!meetings.some((m) => m.id === meetingId)) return;
+
+        handleEventClick({
+            id: meetingId,
+            title: "",
+            type: "meeting",
+            date: "",
+            sourceType: "meeting",
+            sourceId: meetingId,
+        });
+        searchParams.delete("meetingId");
+        setSearchParams(searchParams, { replace: true });
+    }, [searchParams, setSearchParams, isLoading, meetings, handleEventClick]);
 
     return (
         <div className="px-7 py-7 font-sans">
