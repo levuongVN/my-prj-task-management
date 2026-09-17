@@ -10,6 +10,7 @@ import {
 
 import type { Task } from "../../../shared/types/Task";
 import Button from "../../../shared/components/Ui/Button";
+import { getPriorityStyle, getStatusStyle } from "../../../shared/utils/taskStyle";
 import { priorities, statuses } from "../../../constants/taskOption";
 import { useState } from "react";
 import CreateTaskForm from "./CreateTaskForm";
@@ -32,19 +33,6 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
     const deleteTaskMutation = useDeleteTask();
     const isMutating = updateTaskMutation.isPending ||deleteTaskMutation.isPending;
     if (!task) return null;
-
-    const priorityBadge = {
-        High: "bg-red-100 text-red-700",
-        Medium: "bg-amber-100 text-amber-700",
-        Low: "bg-green-100 text-green-700",
-    };
-
-    const statusBadge = {
-        "Pending": "bg-orange-100 text-orange-700",
-        "In Progress": "bg-blue-100 text-blue-700",
-        "In Review": "bg-purple-100 text-purple-700",
-        "Completed": "bg-green-100 text-green-700",
-    };
 
     const formatDate = (date: string) => date.substring(0, 10);
 
@@ -149,10 +137,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
 
                             <span
                                 className={`inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-medium
-                                ${priorityBadge[
-                                    priorities[task.priority] as keyof typeof priorityBadge
-                                    ]
-                                    }`}
+                                ${getPriorityStyle(priorities[task.priority])}`}
                             >
                                 {priorities[task.priority]}
                             </span>
@@ -166,10 +151,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
 
                             <span
                                 className={`inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-medium
-                                ${statusBadge[
-                                    statuses[task.status] as keyof typeof statusBadge
-                                    ]
-                                    }`}
+                                ${getStatusStyle(statuses[task.status])}`}
                             >
                                 {statuses[task.status]}
                             </span>

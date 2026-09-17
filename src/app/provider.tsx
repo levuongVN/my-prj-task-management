@@ -18,6 +18,13 @@ export default function Providers({ children }: Props) {
           position="top-right"
           toastOptions={{
             duration: 3000,
+            /* Rồi theo theme (CSS vars của ThemeProvider) thay vì mặc định
+               nền đen chữ trắng — tránh nổi gai trên light theme */
+            style: {
+              background: "var(--bg-card)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--border)",
+            },
           }}
         />
       </QueryClientProvider>

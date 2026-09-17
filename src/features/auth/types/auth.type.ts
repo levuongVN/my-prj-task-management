@@ -9,6 +9,16 @@ export interface LoadingPayload {
     device: DevicePayload;
 }
 
+export interface GoogleLoginPayload {
+    idToken: string;
+    device: DevicePayload;
+}
+
+export interface GithubLoginPayload {
+    code: string;
+    device: DevicePayload;
+}
+
 export interface RefreshTokenData {
     token: string;
     expiresAt: string;

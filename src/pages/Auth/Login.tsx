@@ -16,11 +16,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginFormValues } from '../../features/auth/schemas/login.schema'
 import Input from '../../shared/components/Ui/Input'
 import Button from '../../shared/components/Ui/Button'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
-import { login } from '../../features/auth/services/auth.service'
+import { login, googleLogin } from '../../features/auth/services/auth.service'
+import { persistAuthResponse } from '../../features/auth/utils/persistAuth'
 import { getDeviceFingerprint } from '../../features/auth/utils/fingerprint'
+import { useGoogleLogin } from '../../features/auth/hooks/useGoogleLogin'
+import { buildGithubAuthorizeUrl } from '../../features/auth/utils/githubAuthorize'
 
 export default function LoginPage() {
     const navigate = useNavigate()
@@ -35,9 +38,7 @@ export default function LoginPage() {
         mutationFn: login,
 
         onSuccess: (data) => {
-            localStorage.setItem('accessToken', data.accessToken)
-            localStorage.setItem('refreshToken', data.refreshToken.token)
-            localStorage.setItem('user', JSON.stringify(data.user))
+            persistAuthResponse(data)
             navigate('/dashboard');
         },
 
@@ -63,6 +64,123 @@ export default function LoginPage() {
     }
     const [showPassword, setShowPassword] = useState(false)
     const [serverError, setServerError] = useState<string | null>(null)
+
+    /*
+     * Hiển thị lỗi OAuth từ trang callback GitHub: GithubCallbackPage redirect
+     * ngược về /login?error=<message> vẫn giữ state của LoginForm nên ta
+     * chỉ đọc ?error= 1 lần lúc mount.
+     */
+    useEffect(() => {
+        const error = new URLSearchParams(window.location.search).get('error')
+        if (error) setServerError(error)
+    }, [])
+
+    /*
+     * ══ GOOGLE OAUTH ══
+     * useGoogleLogin tự load Google GIS script + initialize với
+     * VITE_GOOGLE_CLIENT_ID (Google yêu cầu SDK chạy trong DOM để mở popup
+     * cấp id_token — BE không làm được bước này).
+     *
+     * Callback dưới đây CHẠY SAU KHI user chọn account trong popup:
+     *   idToken (JWT do Google ký) → POST /auth/google → LoginResponse.
+     * BE verify chữ ký JWT bằng client_secret rồi mới phát token app.
+     */
+    const googleMutation = useMutation({
+        mutationFn: googleLogin,
+
+        onSuccess: (data) => {
+            persistAuthResponse(data)
+            navigate('/dashboard')
+        },
+
+        onError: (error) => {
+            if (axios.isAxiosError(error)) {
+                setServerError(error.response?.data?.message || 'Google sign-in failed')
+            } else {
+                setServerError('Google sign-in failed')
+            }
+        },
+    })
+
+    /*
+     * Callback được đăng ký TRƯỚC mutation nhưng CHẠY SAU popup — nó chỉ
+     * forward idToken vào mutation (device payload bắt buộc kèm theo để BE
+     * theo dõi thiết bị). onCredentialRef trong hook đảm bảo SDK luôn gọi
+     * phiên bản callback mới nhất dù component re-render.
+     */
+    const {
+        isReady: isGoogleReady,
+        isConfigured: isGoogleConfigured,
+        renderButton: renderGoogleButton,
+    } = useGoogleLogin(
+        (idToken) => {
+            setServerError(null)
+            googleMutation.mutate({
+                idToken,
+                device: {
+                    fingerprint: getDeviceFingerprint(),
+                    pushToken: null,
+                },
+            })
+        },
+        // Popup One Tap không hiển thị được → Google trả về lý do cụ thể,
+        // map sang thông tin người dùng có thể xử lý:
+        (reason) => {
+            if (reason === 'opt_out_or_no_session') {
+                // Browser chưa đăng nhập Google account nào, hoặc user đã
+                // opt-out One Tap cho site này (Brave mặc định chặn trackers
+                // nên thường rẽ vào nhánh này).
+                setServerError('No Google session found in this browser. Please sign in to your Google account first, then click Google again.')
+                return
+            }
+
+            setServerError(`Google popup could not open (${reason}). Try allowing third-party cookies for accounts.google.com or check your network/adblocker.`)
+        }
+    )
+
+    // Container where GIS renders the official "Continue with Google" button
+    const googleBtnRef = useRef<HTMLDivElement>(null)
+
+    // Poll cho script GIS load xong rồi render official button (mô tả ở hook:
+    // official button + popup ưu việt hơn One Tap prompt trên Brave/Safari).
+    // GIS tự quản inner content — render idempotent, gọi 1 lần là đủ.
+    useEffect(() => {
+        if (!isGoogleConfigured()) return
+
+        let tries = 0
+        const timer = setInterval(() => {
+            if (isGoogleReady() && googleBtnRef.current) {
+                clearInterval(timer)
+                renderGoogleButton(googleBtnRef.current)
+            } else if (++tries > 100) {
+                clearInterval(timer)
+            }
+        }, 100)
+
+        return () => clearInterval(timer)
+        // Các hàm của hook được tạo mới mỗi render nhưng behavior giống nhau —
+        // chỉ cần chạy effect một lần lúc mount.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    /*
+     * ══ GITHUB OAUTH ══
+     * GitHub dùng authorization-code flow, KHÔNG popup:
+     *   1. Đường link authorize được build từ VITE_GITHUB_CLIENT_ID
+     *      (buildGithubAuthorizeUrl → null nếu chưa cấu hình).
+     *   2. Redirect user sang github.com/login/oauth/authorize.
+     *   3. GitHub redirect về /auth/github/callback?code=<code>
+     *      → GithubCallbackPage gọi POST /auth/github.
+     * BE đổi code + client_secret lấy access token GitHub server-side.
+     */
+    const handleGithubClick = () => {
+        const url = buildGithubAuthorizeUrl()
+        if (!url) {
+            setServerError('GitHub sign-in is not configured. Please check the GitHub Client ID.')
+            return
+        }
+        window.location.href = url
+    }
 
     return (
         <div className="min-h-screen bg-black flex items-center justify-center p-6 overflow-hidden">
@@ -217,12 +335,41 @@ export default function LoginPage() {
 
                         <div className="grid grid-cols-2 gap-4">
 
-                            <Button variant="secondary">
-                                <FcGoogle size={24} />
-                                Google
-                            </Button>
+                            {/* handleClick (GitHub): redirect sang GitHub; nếu fail, trang
+                                /auth/github/callback redirect lại về đây kèm ?error=...
+                                để hiển thị thông báo phía trên. */}
+                            {/* FcGoogle custom giữ hình cũ; nút official của GIS phủ
+                                transparent (opacity-0) TRÊN để mọi click vào nó
+                                vẫn mở popup của Google, nhưng nhìn ra vẫn là
+                                nút custom có text + shadow như GitHub. */}
+                            <div className="relative w-full">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    className="w-full border-zinc-200 bg-white !text-zinc-900 shadow-lg hover:bg-zinc-50"
+                                    onClick={isGoogleConfigured() ? undefined : () =>
+                                        setServerError('Google sign-in is not configured. Please check the Google Client ID.')}
+                                >
+                                    <FcGoogle size={24} />
+                                    Google
+                                </Button>
+                                {isGoogleConfigured() && (
+                                    <div
+                                        ref={googleBtnRef}
+                                        /* opacity-0 lên chính container → mọi thứ GIS
+                                        render bên trong ẩn ngay từ first paint,
+                                        không còn flash "button đè lên rồi mất" */
+                                        className="absolute inset-0 cursor-pointer !opacity-0 [&_iframe]:!w-full [&_div]:!w-full"
+                                    />
+                                )}
+                            </div>
 
-                            <Button variant="primary">
+                            <Button
+                                type="button"
+                                variant="primary"
+                                onClick={handleGithubClick}
+                                disabled={googleMutation.isPending || loginMutation.isPending}
+                            >
                                 <FaGithub size={22} />
                                 GitHub
                             </Button>

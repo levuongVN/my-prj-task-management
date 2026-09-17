@@ -16,7 +16,6 @@ function TaskRowInner({
     onPriorityChange,
     onStatusChange,
 }: TaskRowProps) {
-    console.log("🔄 TaskRow rendered:", task.title, "| priority:", task.priority);
     const formatDate = (date: string) => date.substring(0, 10);
     return (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 px-6 py-6 border-b border-white/5 hover:bg-white/[0.02] transition">

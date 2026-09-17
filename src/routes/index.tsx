@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "../layouts/mainLayout";
 
 import Login from "../pages/Auth/Login";
+import GithubCallbackPage from "../pages/Auth/GithubCallbackPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import DashboardPage from "../pages/DashBoardPage";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -19,6 +20,7 @@ function AppRoutes() {
 
         {/* PUBLIC */}
         <Route path="/login" element={<Login />} />
+        <Route path="/auth/github/callback" element={<GithubCallbackPage />} />
 
         {/* PRIVATE */}
         <Route

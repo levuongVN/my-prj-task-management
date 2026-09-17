@@ -8,7 +8,6 @@ interface Props {
 }
 
 function TaskStatsInner({ tasks }: Props) {
-    console.log("🔄 TaskStats rendered | tasks count:", tasks.length);
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
             <div className="rounded-3xl border border-white/5 bg-zinc-950 p-6">
