@@ -3,6 +3,7 @@ import type {
   LoadingPayload,
   LoginResponse,
   LogoutPayload,
+  RegisterPayload,
   GoogleLoginPayload,
   GithubLoginPayload,
   ForgotPasswordPayload,
@@ -23,6 +24,17 @@ export const login = async (
 
 export const logout = async (payload: LogoutPayload): Promise<void> => {
   await api.post('/auth/logout', payload)
+}
+
+export const register = async (
+  payload: RegisterPayload
+): Promise<LoginResponse> => {
+  const response = await api.post<LoginResponse>(
+    '/auth/register',
+    payload
+  )
+
+  return response.data
 }
 
 export const googleLogin = async (

@@ -29,6 +29,13 @@ export interface LogoutPayload {
     refreshToken: string;
 }
 
+export interface RegisterPayload {
+    fullName: string;
+    email: string;
+    password: string;
+    device?: DevicePayload;
+}
+
 export interface ForgotPasswordPayload {
     email: string;
 }

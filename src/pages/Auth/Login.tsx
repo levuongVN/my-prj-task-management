@@ -325,12 +325,19 @@ export default function LoginPage() {
                             </Button>
 
                             {/* Forgot password — BE gửi link /reset-password?token=... qua email */}
-                            <div className="flex justify-center">
+                            <div className="flex items-center justify-between">
                                 <Link
                                     to="/forgot-password"
                                     className="text-sm font-medium text-zinc-500 transition hover:text-zinc-700"
                                 >
                                     Forgot password?
+                                </Link>
+
+                                <Link
+                                    to="/register"
+                                    className="text-sm font-semibold text-zinc-700 transition hover:text-black"
+                                >
+                                    Create an account
                                 </Link>
                             </div>
                         </form>
