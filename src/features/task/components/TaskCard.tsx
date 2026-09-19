@@ -39,7 +39,7 @@ function TaskCardInner({ task, onView, isOverlay }: TaskCardProps) {
             <div
                 ref={setNodeRef}
                 style={style}
-                className="rounded-xl border-2 border-dashed border-zinc-600 bg-zinc-800/20 opacity-50 min-h-[96px]"
+                className="rounded-xl border-2 border-dashed border-zinc-600 bg-bg-card/30 opacity-50 min-h-[96px]"
             />
         );
     }

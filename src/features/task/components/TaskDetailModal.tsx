@@ -191,6 +191,7 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             Edit
                         </Button>
 
+                        {/* Primary để hiển thị rõ là action chính, đổi theo theme accent */}
                         <Button
                             onClick={() => {
                                 updateTaskMutation.mutate(
@@ -224,8 +225,8 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                                     }
                                 )
                             }}
-                            variant="ghost"
-                            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
+                            variant="primary"
+                            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium"
                             isLoading={updateTaskMutation.isPending}
                             disabled={isMutating || task.status === statuses.indexOf("Completed")}
                         >

@@ -26,24 +26,24 @@ function TaskColumnInner({ id, title, tasks, onViewTask }: TaskColumnProps) {
     };
 
     return (
-        <div className="flex flex-col bg-zinc-950/50 rounded-2xl border border-white/5 min-w-[320px] w-[320px]">
+        <div className="flex flex-col bg-bg-card/50 rounded-2xl border border-border-subtle min-w-[320px] w-[320px]">
             {/* Column Header */}
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+            <div className="p-4 border-b border-border-subtle flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className={`w-2.5 h-2.5 rounded-full ${statusColors[id] || 'bg-zinc-500'}`} />
-                    <h3 className="font-semibold text-white">{title}</h3>
+                    <h3 className="font-semibold text-text-primary">{title}</h3>
                 </div>
-                <span className="bg-zinc-900 text-zinc-400 text-xs font-medium px-2 py-1 rounded-md">
+                <span className="bg-bg-surface text-text-secondary text-xs font-medium px-2 py-1 rounded-md">
                     {tasks.length}
                 </span>
             </div>
 
             {/* Droppable Area */}
-            <div 
+            <div
                 ref={setNodeRef}
                 className={clsx(
                     "p-3 flex-1 overflow-y-auto flex flex-col gap-3 min-h-[150px] transition-colors rounded-b-2xl",
-                    isOver ? "bg-zinc-900/60 ring-1 ring-inset ring-white/10" : ""
+                    isOver ? "bg-bg-card ring-1 ring-inset ring-accent-muted" : ""
                 )}
             >
                 <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
