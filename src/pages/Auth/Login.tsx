@@ -11,7 +11,7 @@ import { FcGoogle } from 'react-icons/fc'
 import { FaGithub } from 'react-icons/fa'
 
 import { useForm } from 'react-hook-form'
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginFormValues } from '../../features/auth/schemas/login.schema'
 import Input from '../../shared/components/Ui/Input'
@@ -323,6 +323,16 @@ export default function LoginPage() {
                             >
                                 {loginMutation.isPending ? 'Signing in...' : 'Sign in'}
                             </Button>
+
+                            {/* Forgot password — BE gửi link /reset-password?token=... qua email */}
+                            <div className="flex justify-center">
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-sm font-medium text-zinc-500 transition hover:text-zinc-700"
+                                >
+                                    Forgot password?
+                                </Link>
+                            </div>
                         </form>
 
                         <div className="flex items-center gap-4 my-10">

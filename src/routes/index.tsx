@@ -4,6 +4,8 @@ import MainLayout from "../layouts/mainLayout";
 
 import Login from "../pages/Auth/Login";
 import GithubCallbackPage from "../pages/Auth/GithubCallbackPage";
+import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/Auth/ResetPasswordPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import DashboardPage from "../pages/DashBoardPage";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -21,6 +23,8 @@ function AppRoutes() {
         {/* PUBLIC */}
         <Route path="/login" element={<Login />} />
         <Route path="/auth/github/callback" element={<GithubCallbackPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* PRIVATE */}
         <Route
