@@ -57,6 +57,21 @@ function TaskCardInner({ task, onView, isOverlay }: TaskCardProps) {
             )}
         >
             <h4 className="text-white font-medium line-clamp-2">{task.title}</h4>
+
+            {/* Checklist progress — Boolean() guard tránh render chữ "0" khi total=0 */}
+            {!!task.totalSubtasks && (
+                <div className="flex items-center gap-2">
+                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+                        <div
+                            className="h-full rounded-full bg-emerald-500 transition-all"
+                            style={{ width: `${task.progressPercent ?? 0}%` }}
+                        />
+                    </div>
+                    <span className="text-[10px] text-zinc-500">
+                        {task.completedSubtasks}/{task.totalSubtasks}
+                    </span>
+                </div>
+            )}
             
             <div className="flex items-center justify-between mt-auto">
                 <span className={clsx("px-2.5 py-1 text-xs font-medium rounded-md flex items-center gap-1", priorityColors[task.priority] || "text-zinc-400 bg-zinc-800")}>

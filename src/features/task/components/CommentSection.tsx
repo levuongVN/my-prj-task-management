@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Pencil, Trash2 } from "lucide-react";
+import { MessagesSquare, Pencil, Trash2 } from "lucide-react";
 import Button from "../../../shared/components/Ui/Button";
 import Loading from "../../../shared/components/Ui/Loading";
 import { useComments } from "../../comment/hooks/useComments";
@@ -44,13 +44,13 @@ function CommentAvatar({ comment }: { comment: CommentResponse }) {
             <img
                 src={comment.authorAvatarUrl}
                 alt={comment.authorName}
-                className="h-8 w-8 flex-shrink-0 rounded-full object-cover"
+                className="h-9 w-9 flex-shrink-0 rounded-full object-cover ring-1 ring-white/10"
             />
         );
     }
 
     return (
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-zinc-200">
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-zinc-200 ring-1 ring-white/10">
             {getInitials(comment.authorName)}
         </span>
     );
@@ -77,6 +77,8 @@ export default function CommentSection({ taskId }: CommentSectionProps) {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editingDraft, setEditingDraft] = useState("");
     const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+
+    const canSubmit = draft.trim().length > 0;
 
     const handleSubmit = () => {
         const content = draft.trim();
@@ -137,13 +139,14 @@ export default function CommentSection({ taskId }: CommentSectionProps) {
         deleteCommentMutation.isPending;
 
     return (
-        <section className="border-t border-white/8">
+        <section className="border-t border-white/8 p-6">
             {/* Header */}
-            <div className="px-6 pt-5">
+            <div className="flex items-center gap-2">
+                <MessagesSquare size={15} className="text-zinc-500" />
                 <h3 className="text-sm font-semibold text-white">
                     Comments
                     {comments.length > 0 && (
-                        <span className="ml-2 text-xs font-normal text-zinc-500">
+                        <span className="ml-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-zinc-300">
                             {comments.length}
                         </span>
                     )}
@@ -151,21 +154,25 @@ export default function CommentSection({ taskId }: CommentSectionProps) {
             </div>
 
             {/* List */}
-            <div className="mt-4 max-h-[280px] overflow-y-auto px-6 space-y-4">
+            <div className="mt-4 max-h-[300px] space-y-3 overflow-y-auto pr-1">
                 {isLoading ? (
-                    <Loading size={28} text="" />
+                    <Loading size={26} text="" />
                 ) : comments.length === 0 ? (
-                    <p className="py-6 text-center text-sm text-zinc-500">
-                        No comments yet
-                    </p>
+                    <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-white/10 py-8 text-zinc-600">
+                        <MessagesSquare size={26} strokeWidth={1.5} />
+                        <span className="text-sm">No comments yet</span>
+                    </div>
                 ) : (
                     comments.map((comment) => {
                         const isOwn = comment.authorId === currentUserId;
                         const isEditing = editingId === comment.id;
-                        const isConfirmingDelete = confirmingDeleteId === comment.id;
 
+                        /* Animate: fade + trượt nhẹ vào từ dưới (tw-animate-css) */
                         return (
-                            <div key={comment.id} className="flex gap-3">
+                            <div
+                                key={comment.id}
+                                className="animate-in fade-in slide-in-from-bottom-2 flex gap-3 rounded-2xl border border-white/5 bg-white/[0.02] p-3.5 duration-300"
+                            >
                                 <CommentAvatar comment={comment} />
 
                                 <div className="min-w-0 flex-1">
@@ -178,7 +185,7 @@ export default function CommentSection({ taskId }: CommentSectionProps) {
                                             {formatRelativeTime(comment.createdAt)}
                                         </span>
                                         {comment.updatedAt !== comment.createdAt && (
-                                            <span className="flex-shrink-0 text-[10px] italic text-zinc-600">
+                                            <span className="flex-shrink-0 rounded-full bg-white/5 px-1.5 py-0.5 text-[10px] italic text-zinc-500">
                                                 edited
                                             </span>
                                         )}
@@ -186,13 +193,14 @@ export default function CommentSection({ taskId }: CommentSectionProps) {
 
                                     {/* Body / inline edit */}
                                     {isEditing ? (
-                                        <div className="mt-2">
+                                        <div className="animate-in fade-in slide-in-from-bottom-1 mt-2.5 duration-200">
                                             <textarea
                                                 rows={3}
                                                 value={editingDraft}
                                                 maxLength={MAX_CONTENT_LENGTH}
+                                                autoFocus
                                                 onChange={(e) => setEditingDraft(e.target.value)}
-                                                className="w-full rounded-2xl border border-white/10 bg-black p-3 text-sm text-white outline-none resize-none focus:border-white/30"
+                                                className="w-full rounded-xl border border-white/10 bg-black p-3 text-sm text-white outline-none resize-none transition focus:border-white/30"
                                             />
                                             {editingDraft.length >= MAX_CONTENT_LENGTH && (
                                                 <p className="mt-1 text-xs text-amber-400">
@@ -227,15 +235,15 @@ export default function CommentSection({ taskId }: CommentSectionProps) {
                                             </div>
                                         </div>
                                     ) : (
-                                        <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-zinc-300">
+                                        <p className="mt-1.5 whitespace-pre-wrap break-words text-sm leading-6 text-zinc-300">
                                             {comment.content}
                                         </p>
                                     )}
 
                                     {/* Own comment actions */}
                                     {isOwn && !isEditing && (
-                                        <div className="mt-1.5 flex items-center gap-3">
-                                            {isConfirmingDelete ? (
+                                        <div className="mt-2 flex items-center gap-3">
+                                            {confirmingDeleteId === comment.id ? (
                                                 <>
                                                     <span className="text-xs text-zinc-500">
                                                         Delete this comment?
@@ -243,14 +251,14 @@ export default function CommentSection({ taskId }: CommentSectionProps) {
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDelete(comment)}
-                                                        className="text-xs font-semibold text-red-400 hover:underline"
+                                                        className="animate-in zoom-in-50 text-xs font-semibold text-red-400 duration-150 hover:underline"
                                                     >
                                                         Delete
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => setConfirmingDeleteId(null)}
-                                                        className="text-xs text-zinc-400 hover:text-zinc-300"
+                                                        className="text-xs text-zinc-400 transition hover:text-zinc-300"
                                                     >
                                                         Cancel
                                                     </button>
@@ -287,19 +295,19 @@ export default function CommentSection({ taskId }: CommentSectionProps) {
                 )}
             </div>
 
-            {/* Composer */}
-            <div className="mt-4 border-t border-white/8 p-4">
+            {/* Composer — pill: input + nút gộp trong 1 khối, focus mờ nét */}
+            <div className="mt-4 rounded-2xl border border-white/10 bg-black transition focus-within:border-white/25">
                 <textarea
                     rows={2}
                     value={draft}
                     maxLength={MAX_CONTENT_LENGTH}
                     placeholder="Add a comment..."
                     onChange={(e) => setDraft(e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-black p-3 text-sm text-white outline-none resize-none focus:border-white/30"
+                    className="w-full resize-none rounded-2xl bg-transparent p-3 text-sm text-white outline-none"
                 />
 
-                <div className="mt-2 flex items-center justify-between">
-                    <span className={`text-xs ${draft.length >= MAX_CONTENT_LENGTH ? "text-amber-400" : "text-zinc-500"}`}>
+                <div className="flex items-center justify-between border-t border-white/8 px-3 py-2">
+                    <span className={`text-xs ${draft.length >= MAX_CONTENT_LENGTH ? "text-amber-400" : "text-zinc-600"}`}>
                         {draft.length}/{MAX_CONTENT_LENGTH}
                     </span>
 
@@ -307,9 +315,9 @@ export default function CommentSection({ taskId }: CommentSectionProps) {
                         type="button"
                         size="sm"
                         isLoading={createCommentMutation.isPending}
-                        disabled={!draft.trim() || isMutating}
+                        disabled={!canSubmit || isMutating}
                         onClick={handleSubmit}
-                        className="rounded-xl px-4 py-2 text-xs"
+                        className="rounded-xl px-4 py-1.5 text-xs"
                     >
                         Comment
                     </Button>

@@ -35,9 +35,27 @@ function TaskRowInner({
                             {task.title}
                         </h3>
 
-                        <p className="text-zinc-400 mt-1 text-sm">
-                            {task.description}
-                        </p>
+                        {task.description?.trim() && (
+                            <p className="text-zinc-400 mt-1 text-sm line-clamp-1">
+                                {task.description}
+                            </p>
+                        )}
+
+                        {/* Checklist progress — dùng Boolean() tránh gotcha {0 && < />}
+                            in ra chữ "0" khi totalSubtasks === 0 */}
+                        {!!task.totalSubtasks && (
+                            <div className="mt-3 flex items-center gap-3">
+                                <div className="h-1.5 w-32 overflow-hidden rounded-full bg-white/10">
+                                    <div
+                                        className="h-full rounded-full bg-emerald-500 transition-all"
+                                        style={{ width: `${task.progressPercent ?? 0}%` }}
+                                    />
+                                </div>
+                                <span className="text-xs text-zinc-500">
+                                    {task.completedSubtasks}/{task.totalSubtasks}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -20,6 +20,7 @@ import axios from "axios";
 import useDeleteTask from "../hooks/useDeleteTask";
 import { useProjects } from "../../project/hooks";
 import CommentSection from "./CommentSection";
+import SubtaskSection from "./SubtaskSection";
 
 interface Props {
     isOpen: boolean;
@@ -106,9 +107,11 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             {task.title}
                         </h2>
 
-                        <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-                            {task.description}
-                        </p>
+                        {task.description?.trim() && (
+                            <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                                {task.description}
+                            </p>
+                        )}
                     </div>
 
                     {/* Project */}
@@ -169,6 +172,9 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             </span>
                         </div>
                     </div>
+
+                    {/* Checklist */}
+                    <SubtaskSection taskId={task.id} />
 
                     {/* Comments */}
                     <CommentSection taskId={task.id} />

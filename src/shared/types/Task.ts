@@ -1,3 +1,13 @@
+export interface TaskSubtaskItem {
+    id: string
+    taskId: string
+    title: string
+    isCompleted: boolean
+    position: number
+    createdAt: string
+    updatedAt: string
+}
+
 export interface Task {
     id: string           // uuid
     title: string
@@ -10,4 +20,9 @@ export interface Task {
     createdAt: string    // timestamp
     updatedAt: string    // timestamp
     projectId?: string | null  // uuid, nullable
+    // Checklist — optional để tương thích các nơi chưa truyền từ BE
+    subtasks?: TaskSubtaskItem[]
+    totalSubtasks?: number
+    completedSubtasks?: number
+    progressPercent?: number
 }
