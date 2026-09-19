@@ -19,6 +19,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import useDeleteTask from "../hooks/useDeleteTask";
 import { useProjects } from "../../project/hooks";
+import CommentSection from "./CommentSection";
 
 interface Props {
     isOpen: boolean;
@@ -168,6 +169,9 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             </span>
                         </div>
                     </div>
+
+                    {/* Comments */}
+                    <CommentSection taskId={task.id} />
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 px-6 py-4">
