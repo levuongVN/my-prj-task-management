@@ -14,9 +14,14 @@ interface DashboardStats {
 }
 
 export function useDashboardData() {
-    const { data: tasks = [], isLoading: tasksLoading } = useTasks();
-    const { data: projects = [], isLoading: projectsLoading } = useProjects();
-    const { data: meetings = [], isLoading: meetingsLoading } = useMeetings();
+    // Dashboard cần full data cho stats/productivity → lấy pageSize 100 (BE clamp)
+    const { data: pagedTasks, isLoading: tasksLoading } = useTasks(1, 100);
+    const { data: pagedProjects, isLoading: projectsLoading } = useProjects(1, 100);
+    const { data: pagedMeetings, isLoading: meetingsLoading } = useMeetings(1, 100);
+
+    const tasks = useMemo(() => pagedTasks?.items ?? [], [pagedTasks]);
+    const projects = useMemo(() => pagedProjects?.items ?? [], [pagedProjects]);
+    const meetings = useMemo(() => pagedMeetings?.items ?? [], [pagedMeetings]);
 
     const ongoingTasks = useMemo(() => (
         tasks

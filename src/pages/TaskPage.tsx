@@ -14,17 +14,21 @@ import { useTasks } from "../features/task/hooks/useTask";
 import { useCreateTask } from "../features/task/hooks/useCreateTask";
 import { useUpdateTask } from "../features/task/hooks/useUpdateTask";
 import Loading from "../shared/components/Ui/Loading";
+import Pagination from "../shared/components/Ui/Pagination";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useProjects } from "../features/project/hooks";
 
 export default function TaskPage() {
+    const [page, setPage] = useState(1);
     const {
-        data: tasks = [],
+        data: pagedTasks,
         isLoading,
         error,
-    } = useTasks();
-    const { data: projects = [] } = useProjects();
+    } = useTasks(page, 20);
+    const tasks = useMemo(() => pagedTasks?.items ?? [], [pagedTasks]);
+    const { data: pagedProjects } = useProjects(1, 100);
+    const projects = pagedProjects?.items ?? [];
     const createTaskMutation = useCreateTask();
     const updateTaskMutation = useUpdateTask();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -173,7 +177,7 @@ export default function TaskPage() {
 
             {/* Task List / Board */}
             {viewMode === "list" ? (
-                <div className="rounded-[32px] border border-white/5 bg-zinc-950 overflow-scroll">
+                <div className="rounded-[32px] border border-white/5 bg-zinc-950 overflow-hidden">
                     {/* Header */}
                     <TaskTableHeader />
                     {/* Tasks */}
@@ -188,13 +192,38 @@ export default function TaskPage() {
                             />
                         ))}
                     </div>
+
+                    {/* Pagination */}
+                    {pagedTasks && (
+                        <Pagination
+                            page={pagedTasks.page}
+                            totalPages={pagedTasks.totalPages}
+                            totalCount={pagedTasks.totalCount}
+                            shownCount={pagedTasks.items.length}
+                            onPageChange={setPage}
+                            label="tasks"
+                        />
+                    )}
                 </div>
             ) : (
-                <TaskBoard 
-                    tasks={sortedTasks} 
-                    onStatusChange={handleStatusChange} 
-                    onViewTask={handleViewTask}
-                />
+                <>
+                    <TaskBoard
+                        tasks={sortedTasks}
+                        onStatusChange={handleStatusChange}
+                        onViewTask={handleViewTask}
+                    />
+
+                    {pagedTasks && (
+                        <Pagination
+                            page={pagedTasks.page}
+                            totalPages={pagedTasks.totalPages}
+                            totalCount={pagedTasks.totalCount}
+                            shownCount={pagedTasks.items.length}
+                            onPageChange={setPage}
+                            label="tasks"
+                        />
+                    )}
+                </>
             )}
 
             {/* Create Task Modal */}

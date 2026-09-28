@@ -57,8 +57,11 @@ export function GlobalSearch() {
     const inputRef = useRef<HTMLInputElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    const { data: tasks = [] } = useTasks();
-    const { data: projects = [] } = useProjects();
+    // Search cần quét mọi task/project → pageSize 100 (BE clamp)
+    const { data: pagedTasks } = useTasks(1, 100);
+    const { data: pagedProjects } = useProjects(1, 100);
+    const tasks = useMemo(() => pagedTasks?.items ?? [], [pagedTasks]);
+    const projects = useMemo(() => pagedProjects?.items ?? [], [pagedProjects]);
 
     // Cmd/Ctrl + K focuses the search from anywhere
     useEffect(() => {

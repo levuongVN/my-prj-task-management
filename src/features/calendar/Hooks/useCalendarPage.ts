@@ -15,9 +15,14 @@ export type { ActiveTab } from "./useCalendarCreateEvent";
 
 export function useCalendarPage() {
     // ── Data fetching ────────────────────────────────────────────────────────
-    const { data: rawProjects = [], isLoading: isLoadingProjects } = useProjects();
-    const { data: rawTasks = [], isLoading: isLoadingTasks } = useTasks();
-    const { data: meetings = [], isLoading: isLoadingMeetings } = useMeetings();
+    // Calendar cần full data để derive events mọi tháng → pageSize 100 (BE clamp)
+    const { data: pagedProjects, isLoading: isLoadingProjects } = useProjects(1, 100);
+    const { data: pagedTasks, isLoading: isLoadingTasks } = useTasks(1, 100);
+    const { data: pagedMeetings, isLoading: isLoadingMeetings } = useMeetings(1, 100);
+
+    const rawProjects = useMemo(() => pagedProjects?.items ?? [], [pagedProjects]);
+    const rawTasks = useMemo(() => pagedTasks?.items ?? [], [pagedTasks]);
+    const meetings = useMemo(() => pagedMeetings?.items ?? [], [pagedMeetings]);
 
     const isLoading = isLoadingProjects || isLoadingTasks || isLoadingMeetings;
 

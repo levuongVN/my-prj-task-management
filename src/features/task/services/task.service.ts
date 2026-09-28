@@ -1,13 +1,17 @@
 import api from "../../../shared/services/axios";
 import type { TaskPayload, TaskResponse,updateTaskPayload } from "../types/task.type";
+import type { PagedResponse } from "../../../shared/types/PagedResponse";
 
 export const createTask = async function (payload: TaskPayload) {
     const response = await api.post<TaskResponse>("/tasks", payload);
     return response.data;
 };
 
-export const getAllTasks = async function () {
-    const response = await api.get<TaskResponse[]>("/tasks");
+/** BE sort: createdAt giảm dần (mới trước). BE tự clamp page/pageSize. */
+export const getAllTasks = async function (page = 1, pageSize = 20) {
+    const response = await api.get<PagedResponse<TaskResponse>>("/tasks", {
+        params: { page, pageSize },
+    });
     return response.data;
 }
 
@@ -25,7 +29,10 @@ export const deleteTask = async function (id: string) {
     await api.delete(`/tasks/${id}`);
 };
 
-export const getTasksByProject = async function (projectId: string) {
-    const response = await api.get<TaskResponse[]>(`/tasks/project/${projectId}`);
+/** BE sort: position tăng dần (thứ tự board/kanban) */
+export const getTasksByProject = async function (projectId: string, page = 1, pageSize = 20) {
+    const response = await api.get<PagedResponse<TaskResponse>>(`/tasks/project/${projectId}`, {
+        params: { page, pageSize },
+    });
     return response.data;
 };

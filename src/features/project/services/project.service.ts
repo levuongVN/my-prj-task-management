@@ -1,9 +1,13 @@
 import api from "../../../shared/services/axios";
 import type { ProjectPayload, UpdateProjectPayload } from "../types/projectPayload";
 import type { ProjectResponse } from "../types/projectResponse";
+import type { PagedResponse } from "../../../shared/types/PagedResponse";
 
-export const getAllProjects = async () => {
-    const response = await api.get<ProjectResponse[]>("/projects");
+/** BE sort: createdAt giảm dần (mới trước). BE tự clamp page/pageSize. */
+export const getAllProjects = async (page = 1, pageSize = 20) => {
+    const response = await api.get<PagedResponse<ProjectResponse>>("/projects", {
+        params: { page, pageSize },
+    });
 
     return response.data;
 };

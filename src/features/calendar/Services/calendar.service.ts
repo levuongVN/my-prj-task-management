@@ -1,5 +1,6 @@
 import api from "../../../shared/services/axios";
 import type { Meeting } from "../../../shared/types/Meeting";
+import type { PagedResponse } from "../../../shared/types/PagedResponse";
 
 export interface MeetingPayload {
     title: string;
@@ -12,8 +13,11 @@ export interface UpdateMeetingPayload {
     meetingPayload: MeetingPayload;
 }
 
-export const getAllMeetings = async () => {
-    const response = await api.get<Meeting[]>("/meetings");
+/** BE sort: startAt giảm dần (gần nhất trước). BE tự clamp page/pageSize. */
+export const getAllMeetings = async (page = 1, pageSize = 20) => {
+    const response = await api.get<PagedResponse<Meeting>>("/meetings", {
+        params: { page, pageSize },
+    });
     return response.data;
 };
 

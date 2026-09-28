@@ -36,9 +36,10 @@ export default function ProjectDetailPanel({
 }: ProjectDetailPanelProps) {
     const [confirmDelete, setConfirmDelete] = useState(false);
 
-    const { data: tasks = [], isLoading: isLoadingTasks } = useTaskByProjectId(
+    const { data: pagedTasks, isLoading: isLoadingTasks } = useTaskByProjectId(
         isOpen ? project?.id : undefined
     );
+    const tasks = pagedTasks?.items ?? [];
 
     // Reset confirm state khi đóng panel
     const handleClose = () => {

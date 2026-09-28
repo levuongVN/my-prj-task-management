@@ -30,7 +30,8 @@ interface Props {
 
 export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
     const [isEditing, setIsEditing] = useState(false);
-    const { data: projects = [] } = useProjects();
+    const { data: pagedProjects } = useProjects(1, 100);
+    const projects = pagedProjects?.items ?? [];
     const updateTaskMutation = useUpdateTask();
     const deleteTaskMutation = useDeleteTask();
     const isMutating = updateTaskMutation.isPending ||deleteTaskMutation.isPending;

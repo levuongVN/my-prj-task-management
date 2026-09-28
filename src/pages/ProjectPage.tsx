@@ -9,6 +9,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ProjectForm from '../features/project/components/ProjectForm';
 import ProjectDetailPanel from '../features/project/components/ProjectDetailPanel';
+import Pagination from '../shared/components/Ui/Pagination';
 
 import {
     projectSchema,
@@ -25,12 +26,13 @@ import { ProjectToolbar } from '../features/project/components/ProjectToolbar';
 
 export default function ProjectsPage() {
     // ── Fetch từ API ──────────────────────────────────────
-    const { data: rawProjects = [], isLoading } = useProjects();
+    const [page, setPage] = useState(1);
+    const { data: paged, isLoading } = useProjects(page, 20);
     const createProjectMutation = useCreateProject();
     const updateProjectMutation = useUpdateProject();
     const deleteProjectMutation = useDeleteProject();
 
-    const projects: Project[] = useMemo(() => rawProjects.map((p) => ({
+    const projects: Project[] = useMemo(() => (paged?.items ?? []).map((p) => ({
         id: p.id,
         name: p.name,
         description: p.description ?? undefined,
@@ -39,7 +41,7 @@ export default function ProjectsPage() {
         progress: p.progress,
         overdue: new Date(p.due) < new Date() && p.status !== 1,
         taskIds: [],
-    })), [rawProjects]);
+    })), [paged]);
 
     // ── Filter / Sort ─────────────────────────────────────
     const {
@@ -216,6 +218,18 @@ export default function ProjectsPage() {
                         <div className="flex flex-col items-center justify-center py-20 text-center">
                             <p className="text-sm text-zinc-600">No projects match your search.</p>
                         </div>
+                    )}
+
+                    {/* Pagination */}
+                    {paged && (
+                        <Pagination
+                            page={paged.page}
+                            totalPages={paged.totalPages}
+                            totalCount={paged.totalCount}
+                            shownCount={paged.items.length}
+                            onPageChange={setPage}
+                            label="projects"
+                        />
                     )}
                 </>
             )}
