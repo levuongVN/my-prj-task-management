@@ -49,12 +49,31 @@ export interface MessageResponse {
     message: string;
 }
 
+export interface UserDto {
+    id: string;
+    email: string;
+    fullName: string;
+    avatarUrl?: string | null;
+    emailVerifiedAt?: string | null;
+    createdAt?: string | null;
+}
+
 export interface UserData {
     id: string;
     email: string;
     fullName: string;
     avatarUrl?: string;
+    /** null = chưa verify email; ISO date = đã verify (OAuth tự verify) */
+    emailVerifiedAt?: string | null;
     createdAt?: string;
+}
+
+export interface VerifyEmailPayload {
+    token: string;
+}
+
+export interface ResendVerificationPayload {
+    email: string;
 }
 
 export interface LoginResponse {

@@ -8,6 +8,8 @@ import type {
   GithubLoginPayload,
   ForgotPasswordPayload,
   ResetPasswordPayload,
+  VerifyEmailPayload,
+  ResendVerificationPayload,
   MessageResponse,
 } from '../types/auth.type'
 
@@ -70,5 +72,19 @@ export const resetPassword = async (
   payload: ResetPasswordPayload
 ): Promise<MessageResponse> => {
   const response = await api.post<MessageResponse>('/auth/reset-password', payload)
+  return response.data
+}
+
+export const verifyEmail = async (
+  payload: VerifyEmailPayload
+): Promise<MessageResponse> => {
+  const response = await api.post<MessageResponse>('/auth/verify-email', payload)
+  return response.data
+}
+
+export const resendVerification = async (
+  payload: ResendVerificationPayload
+): Promise<MessageResponse> => {
+  const response = await api.post<MessageResponse>('/auth/resend-verification', payload)
   return response.data
 }
