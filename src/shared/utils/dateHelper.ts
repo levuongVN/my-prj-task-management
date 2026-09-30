@@ -8,16 +8,22 @@ export function toDateStr(year: number, month: number, day: number): string {
 export function buildMonthDays(year: number, month: number) {
     const firstDay         = new Date(year, month, 1).getDay();
     const daysInMonth      = new Date(year, month + 1, 0).getDate();
-    const daysInPrevMonth  = new Date(year, month, 0).getDate();
     const days: { date: string; day: number; isCurrentMonth: boolean }[] = [];
 
-    for (let i = firstDay - 1; i >= 0; i--)
-        days.push({ date: toDateStr(year, month - 1, daysInPrevMonth - i), day: daysInPrevMonth - i, isCurrentMonth: false });
+    // Dùng Date tự normalize khi tràn ranh giới năm (tháng 1 lùi sang tháng 12
+    // năm trước, tháng 12 tiến sang tháng 1 năm sau) — tránh sinh chuỗi
+    // "2026-00-xx" / "2026-13-xx" khi cộng trừ month trực tiếp.
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const d = new Date(year, month, -i);
+        days.push({ date: toDateStr(d.getFullYear(), d.getMonth(), d.getDate()), day: d.getDate(), isCurrentMonth: false });
+    }
     for (let d = 1; d <= daysInMonth; d++)
         days.push({ date: toDateStr(year, month, d), day: d, isCurrentMonth: true });
     const remaining = 42 - days.length;
-    for (let d = 1; d <= remaining; d++)
-        days.push({ date: toDateStr(year, month + 1, d), day: d, isCurrentMonth: false });
+    for (let d = 1; d <= remaining; d++) {
+        const dt = new Date(year, month + 1, d);
+        days.push({ date: toDateStr(dt.getFullYear(), dt.getMonth(), dt.getDate()), day: d, isCurrentMonth: false });
+    }
 
     return days;
 }
