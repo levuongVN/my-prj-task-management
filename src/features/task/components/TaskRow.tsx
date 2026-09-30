@@ -1,8 +1,11 @@
 import { memo } from "react";
-import { CheckCircle2, Clock3 } from "lucide-react";
+import { Clock3, Repeat } from "lucide-react";
+import clsx from "clsx";
 import CustomSelect from "../../../shared/components/Ui/CustomSelect";
+import { LabelChips } from "../../../shared/components/Ui/LabelChip";
 import type { Task } from "../../../shared/types/Task";
-import { priorities, statuses } from "../../../constants/taskOption";
+import { priorities, statuses, TASK_RECURRENCE_MAP } from "../../../constants/taskOption";
+
 interface TaskRowProps {
     task: Task
     onView: (task: Task) => void;
@@ -17,45 +20,60 @@ function TaskRowInner({
     onStatusChange,
 }: TaskRowProps) {
     const formatDate = (date: string) => date.substring(0, 10);
-    return (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 px-6 py-6 border-b border-white/5 hover:bg-white/[0.02] transition">
+    const isCompleted = task.status === statuses.indexOf("Completed");
 
+    return (
+        <div
+            onClick={(e) => {
+                // Click hàng → mở detail (không gồm tương tác trong select/button)
+                const target = e.target as HTMLElement;
+                if (target.closest("button") || target.closest("[role='listbox']")?.contains(target)) return;
+                onView(task);
+            }}
+            className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-3.5 border-b border-white/5 hover:bg-white/[0.03] transition cursor-pointer"
+        >
             {/* Task Info */}
             <div className="col-span-5">
-                <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
-                        <CheckCircle2
-                            size={20}
-                            className="text-white"
-                        />
-                    </div>
-
-                    <div>
-                        <h3 className="font-semibold text-lg">
-                            {task.title}
-                        </h3>
-
-                        {task.description?.trim() && (
-                            <p className="text-zinc-400 mt-1 text-sm line-clamp-1">
-                                {task.description}
-                            </p>
+                <div className="flex items-center gap-3 min-w-0">
+                    <span
+                        className={clsx(
+                            "h-2 w-2 flex-shrink-0 rounded-full",
+                            isCompleted ? "bg-emerald-500" : "bg-zinc-500"
                         )}
+                    />
 
-                        {/* Checklist progress — dùng Boolean() tránh gotcha {0 && < />}
-                            in ra chữ "0" khi totalSubtasks === 0 */}
-                        {!!task.totalSubtasks && (
-                            <div className="mt-3 flex items-center gap-3">
-                                <div className="h-1.5 w-32 overflow-hidden rounded-full bg-white/10">
-                                    <div
-                                        className="h-full rounded-full bg-emerald-500 transition-all"
-                                        style={{ width: `${task.progressPercent ?? 0}%` }}
-                                    />
-                                </div>
-                                <span className="text-xs text-zinc-500">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            <h3 className={clsx(
+                                "truncate text-sm font-medium",
+                                isCompleted ? "text-zinc-500 line-through" : "text-white"
+                            )}>
+                                {task.title}
+                            </h3>
+
+                            {/* Labels — chips màu, tối đa 2 + "+N" */}
+                            <LabelChips labels={task.labels} max={2} />
+
+                            {/* Checklist progress — Boolean() chống in chữ "0" */}
+                            {!!task.totalSubtasks && (
+                                <span className="flex flex-shrink-0 items-center gap-1.5 text-[11px] text-zinc-500">
+                                    <span className="h-1 w-14 overflow-hidden rounded-full bg-white/10">
+                                        <span
+                                            className="block h-full rounded-full bg-emerald-500 transition-all"
+                                            style={{ width: `${task.progressPercent ?? 0}%` }}
+                                        />
+                                    </span>
                                     {task.completedSubtasks}/{task.totalSubtasks}
                                 </span>
-                            </div>
-                        )}
+                            )}
+
+                            {/* Description inline, ẩn luôn nếu dòng dài hơn */}
+                            {task.description?.trim() && (
+                                <span className="hidden lg:block truncate text-xs text-zinc-500">
+                                    {task.description}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -63,6 +81,7 @@ function TaskRowInner({
             {/* Priority */}
             <div className="col-span-2 flex items-center">
                 <CustomSelect
+                    compact
                     value={priorities[task.priority]}
                     onChange={(value) =>
                         onPriorityChange(task.id, priorities.indexOf(value))
@@ -79,6 +98,7 @@ function TaskRowInner({
             {/* Status */}
             <div className="col-span-2 flex items-center">
                 <CustomSelect
+                    compact
                     value={statuses[task.status]}
                     onChange={(value) =>
                         onStatusChange(task.id, statuses.indexOf(value))
@@ -94,18 +114,28 @@ function TaskRowInner({
             </div>
 
             {/* Due */}
-            <div className="col-span-2 flex items-center text-zinc-400">
-                <div className="flex items-center gap-2">
-                    <Clock3 size={16} />
+            <div className="col-span-2 flex items-center text-sm text-zinc-400">
+                <span className="flex items-center gap-1.5">
+                    <Clock3 size={14} />
                     {task.deadline ? formatDate(task.deadline) : "—"}
-                </div>
+                    {/* Recurring badge — task sẽ tự sinh lại sau kỳ này */}
+                    {!!task.recurrenceType && (
+                        <span className="flex items-center gap-0.5 rounded-md bg-white/5 px-1.5 py-0.5 text-[10px] font-medium text-blue-400">
+                            <Repeat size={11} />
+                            {TASK_RECURRENCE_MAP[task.recurrenceType]}
+                        </span>
+                    )}
+                </span>
             </div>
 
-            {/* Action */}
+            {/* Action — ghost */}
             <div className="col-span-1 flex items-center justify-end">
                 <button
-                    onClick={() => onView(task)}
-                    className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white hover:text-black transition"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onView(task);
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 border border-white/10 transition hover:text-white hover:bg-white/10"
                 >
                     View
                 </button>

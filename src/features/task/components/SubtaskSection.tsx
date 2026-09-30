@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Button from "../../../shared/components/Ui/Button";
 import Loading from "../../../shared/components/Ui/Loading";
+import { getNextDeadline } from "../../../constants/taskOption";
 import { useSubtasks } from "../../subtask/hooks/useSubtasks";
 import { useCreateSubtask } from "../../subtask/hooks/useCreateSubtask";
 import { useUpdateSubtask } from "../../subtask/hooks/useUpdateSubtask";
@@ -23,6 +24,9 @@ const MAX_TITLE_LENGTH = 255;
 
 interface SubtaskSectionProps {
     taskId: string;
+    /** Task cha — để notify recurring khi tick xong checklist */
+    recurredDeadline?: string | null;
+    recurrenceType?: number;
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -32,7 +36,11 @@ function getErrorMessage(error: unknown, fallback: string) {
     return fallback;
 }
 
-export default function SubtaskSection({ taskId }: SubtaskSectionProps) {
+export default function SubtaskSection({
+    taskId,
+    recurredDeadline,
+    recurrenceType,
+}: SubtaskSectionProps) {
     const { data: subtasks = [], isLoading } = useSubtasks(taskId);
     const createSubtaskMutation = useCreateSubtask(taskId);
     const updateSubtaskMutation = useUpdateSubtask(taskId);
@@ -186,10 +194,29 @@ export default function SubtaskSection({ taskId }: SubtaskSectionProps) {
                                 <button
                                     type="button"
                                     disabled={isMutating}
-                                    onClick={() => toggleSubtaskMutation.mutate(subtask.id, {
-                                        onError: (error) =>
-                                            toast.error(getErrorMessage(error, "Failed to update subtask")),
-                                    })}
+                                    onClick={() => {
+                                        // Task recurring + tick item cuối → BE auto Done task
+                                        // và sinh task kế → notify theo deadline mới (FE tính)
+                                        const willComplete = !subtask.isCompleted;
+                                        const allOthersDone = subtasks.every(
+                                            (s) => s.id === subtask.id || s.isCompleted
+                                        );
+
+                                        toggleSubtaskMutation.mutate(subtask.id, {
+                                            onSuccess: () => {
+                                                if (willComplete && allOthersDone) {
+                                                    const next = getNextDeadline(recurredDeadline, recurrenceType ?? 0);
+                                                    if (next) {
+                                                        toast.success(
+                                                            `Next task created for ${new Date(next).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                                                        );
+                                                    }
+                                                }
+                                            },
+                                            onError: (error) =>
+                                                toast.error(getErrorMessage(error, "Failed to update subtask")),
+                                        });
+                                    }}
                                     className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border transition-all duration-200 active:scale-90 disabled:opacity-50 ${
                                         subtask.isCompleted
                                             ? "border-emerald-500/60 bg-emerald-500/20 text-emerald-400"

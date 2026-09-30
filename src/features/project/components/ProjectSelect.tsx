@@ -80,10 +80,11 @@ export default function ProjectSelect({
                                     bg-black
                                     px-4
                                     pr-10
+                                    text-sm
                                     text-white
                                     outline-none
                                     transition
-                                    placeholder:text-zinc-500
+                                    placeholder:text-zinc-600
                                     focus:border-white/30
                                 "
                             />
