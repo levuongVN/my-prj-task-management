@@ -22,6 +22,8 @@ type Props = {
   options: Option[]
   onChange: (value: string) => void
   type?: 'priority' | 'status'
+  /** Dùng trong table row — bớt padding/rounded cho gọn */
+  compact?: boolean
 }
 
 export default function CustomSelect({
@@ -29,6 +31,7 @@ export default function CustomSelect({
   options,
   onChange,
   type = 'priority',
+  compact = false,
 }: Props) {
   const getStyle = (val: string) => {
     const v = val?.toLowerCase() || '';
@@ -67,12 +70,12 @@ export default function CustomSelect({
       <div className="relative w-full">
         <ListboxButton
           className={`
-            relative w-full rounded-2xl border
-            py-3 pl-4 pr-10 text-left
-            text-sm font-semibold
+            relative w-full border
+            text-left font-semibold
             backdrop-blur-xl
             transition-all duration-200
             hover:border-white/20
+            ${compact ? "rounded-xl py-1.5 pl-3 pr-7 text-xs" : "rounded-2xl py-3 pl-4 pr-10 text-sm"}
             ${getStyle(value)}
           `}
         >
@@ -80,22 +83,22 @@ export default function CustomSelect({
             {options.find((opt) => opt.value === value)?.label || value}
           </span>
 
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-            <ChevronUpDownIcon className="h-5 w-5 text-white/50" />
+          <span className={`pointer-events-none absolute inset-y-0 flex items-center ${compact ? "right-1.5" : "right-3"}`}>
+            <ChevronUpDownIcon className={compact ? "h-3.5 w-3.5 text-white/50" : "h-5 w-5 text-white/50"} />
           </span>
         </ListboxButton>
 
         <ListboxOptions
           transition
-          className="
-            absolute z-50 mt-2 max-h-60 w-full overflow-auto
+          className={`
+            absolute z-50 mt-2 w-full overflow-auto
             rounded-2xl border border-white/10
-            bg-zinc-950 p-2 shadow-2xl
+            bg-zinc-950 p-1.5 shadow-2xl
             backdrop-blur-2xl
             transition duration-200 ease-out
             data-[closed]:scale-95
             data-[closed]:opacity-0
-          "
+          `}
         >
           {options.map((option) => (
             <ListboxOption
@@ -104,7 +107,7 @@ export default function CustomSelect({
               className={({ focus }) =>
                 `
                 relative cursor-pointer select-none
-                rounded-xl px-4 py-3 text-sm
+                ${compact ? "rounded-lg px-2.5 py-1.5 text-xs" : "rounded-xl px-4 py-3 text-sm"}
                 transition-all duration-150
                 ${
                   focus

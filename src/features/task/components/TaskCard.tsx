@@ -1,10 +1,11 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Clock, AlertCircle } from "lucide-react";
-import { TASK_PRIORITY_MAP } from "../../../constants/taskOption";
+import { Clock, AlertCircle, Repeat } from "lucide-react";
+import { TASK_PRIORITY_MAP, TASK_RECURRENCE_MAP } from "../../../constants/taskOption";
 import { format } from "date-fns";
 import clsx from "clsx";
 import type { Task } from "../../../shared/types/Task";
+import { LabelChips } from "../../../shared/components/Ui/LabelChip";
 import { memo } from "react";
 
 interface TaskCardProps {
@@ -58,6 +59,9 @@ function TaskCardInner({ task, onView, isOverlay }: TaskCardProps) {
         >
             <h4 className="text-white font-medium line-clamp-2">{task.title}</h4>
 
+            {/* Labels — chips màu (max 2 + N) */}
+            <LabelChips labels={task.labels} max={2} />
+
             {/* Checklist progress — Boolean() guard tránh render chữ "0" khi total=0 */}
             {!!task.totalSubtasks && (
                 <div className="flex items-center gap-2">
@@ -83,6 +87,14 @@ function TaskCardInner({ task, onView, isOverlay }: TaskCardProps) {
                     <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                         <Clock size={14} />
                         <span>{format(new Date(task.deadline), "MMM d")}</span>
+
+                        {/* Recurring badge */}
+                        {!!task.recurrenceType && (
+                            <span className="flex items-center gap-0.5 rounded-md bg-white/5 px-1 py-0.5 text-[10px] font-medium text-blue-400">
+                                <Repeat size={10} />
+                                {TASK_RECURRENCE_MAP[task.recurrenceType]}
+                            </span>
+                        )}
                     </div>
                 )}
             </div>

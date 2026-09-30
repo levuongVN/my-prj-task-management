@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { recurrences } from "../../../constants/taskOption";
 
 export const createTaskSchema = z.object({
     title: z
@@ -23,6 +24,11 @@ export const createTaskSchema = z.object({
     due: z.string().min(1, "Due date is required"),
 
     projectId: z.string().optional(),
+
+    /** Label ids (labelIds: [] = gỡ hết, [ids] = thay cả bộ — contract BE) */
+    labelIds: z.array(z.string()).optional(),
+
+    recurrence: z.enum(recurrences).optional(),
 });
 
 export type CreateTaskFormValues = z.infer<typeof createTaskSchema>;

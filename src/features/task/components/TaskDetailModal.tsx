@@ -11,7 +11,7 @@ import {
 import type { Task } from "../../../shared/types/Task";
 import Button from "../../../shared/components/Ui/Button";
 import { getPriorityStyle, getStatusStyle } from "../../../shared/utils/taskStyle";
-import { priorities, statuses } from "../../../constants/taskOption";
+import { priorities, statuses, recurrences, getNextDeadline } from "../../../constants/taskOption";
 import { useState } from "react";
 import CreateTaskForm from "./CreateTaskForm";
 import { useUpdateTask } from "../hooks/useUpdateTask";
@@ -21,6 +21,8 @@ import useDeleteTask from "../hooks/useDeleteTask";
 import { useProjects } from "../../project/hooks";
 import CommentSection from "./CommentSection";
 import SubtaskSection from "./SubtaskSection";
+import { LabelChip } from "../../../shared/components/Ui/LabelChip";
+import { Tag } from "lucide-react";
 
 interface Props {
     isOpen: boolean;
@@ -57,6 +59,8 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                         status: statuses[task.status] as "Pending" | "In Progress" | "In Review" | "Completed",
                         due: task.deadline ? formatDate(task.deadline) : "",
                         projectId: task.projectId ?? "",
+                        labelIds: task.labels?.map((l) => l.id) ?? [],
+                        recurrence: recurrences[task.recurrenceType ?? 0],
                     }}
                     onSubmit={(data) => {
                         updateTaskMutation.mutate(
@@ -69,6 +73,8 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                                     status: statuses.indexOf(data.status),
                                     deadline: new Date(data.due).toISOString(),
                                     projectId: data.projectId || null,
+                                    labelIds: data.labelIds ?? [],
+                                    recurrenceType: recurrences.indexOf(data.recurrence ?? recurrences[0]),
                                 },
                             },
                             {
@@ -132,6 +138,21 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                         )}
                     </div>
 
+                    {/* Labels */}
+                    {!!task.labels?.length && (
+                        <div className="flex items-center gap-2 px-6 py-3 border-b border-white/8">
+                            <Tag size={14} className="text-zinc-500" />
+                            <span className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                                Labels
+                            </span>
+                            <span className="ml-1 flex flex-wrap items-center gap-1.5">
+                                {task.labels.map((label) => (
+                                    <LabelChip key={label.id} label={label} />
+                                ))}
+                            </span>
+                        </div>
+                    )}
+
                     {/* Meta grid */}
                     <div className="grid grid-cols-3 divide-x divide-white/8 border-b border-white/8">
                         <div className="flex flex-col gap-2 px-5 py-4">
@@ -175,7 +196,11 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                     </div>
 
                     {/* Checklist */}
-                    <SubtaskSection taskId={task.id} />
+                    <SubtaskSection
+                        taskId={task.id}
+                        recurredDeadline={task.deadline}
+                        recurrenceType={task.recurrenceType}
+                    />
 
                     {/* Comments */}
                     <CommentSection taskId={task.id} />
@@ -209,6 +234,17 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                                     {
                                         onSuccess: () => {
                                             toast.success("Task marked as complete");
+                                            // BE tự sinh task kế cho recurring (không có trong
+                                            // response PUT) → refetch list để thấy ngay
+                                            const wasRecurring = !!task.recurrenceType && task.recurrenceType !== 0;
+                                            if (wasRecurring) {
+                                                const next = getNextDeadline(task.deadline, task.recurrenceType as number);
+                                                if (next) {
+                                                    toast.success(
+                                                        `Next task created for ${new Date(next).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                                                    );
+                                                }
+                                            }
                                             onClose();
                                         },
 

@@ -8,41 +8,27 @@ interface Props {
 }
 
 function TaskStatsInner({ tasks }: Props) {
+    const total = tasks.length;
+    const inProgress = tasks.filter((t) => statuses[t.status] === "In Progress").length;
+    const completed = tasks.filter((t) => statuses[t.status] === "Completed").length;
+
+    const metrics = [
+        { label: "Total", value: total, valueColor: "text-white" },
+        { label: "In Progress", value: inProgress, valueColor: "text-blue-400" },
+        { label: "Completed", value: completed, valueColor: "text-emerald-400" },
+    ];
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-            <div className="rounded-3xl border border-white/5 bg-zinc-950 p-6">
-                <p className="text-zinc-400 text-sm">Total Tasks</p>
+        <div className="grid grid-cols-3 md:flex gap-3 mb-6">
+            {metrics.map((metric) => (
+                <div key={metric.label} className="flex items-center gap-3 rounded-2xl border border-white/5 bg-zinc-950 px-4 py-3">
+                    <p className="text-xs text-zinc-500">{metric.label}</p>
 
-                <h2 className="text-4xl font-bold mt-3">
-                    {tasks.length}
-                </h2>
-            </div>
-
-            <div className="rounded-3xl border border-white/5 bg-zinc-950 p-6">
-                <p className="text-zinc-400 text-sm">In Progress</p>
-
-                <h2 className="text-4xl font-bold mt-3 text-blue-400">
-                    {
-                        tasks.filter(
-                            (task) =>
-                                statuses[task.status] === "In Progress"
-                        ).length
-                    }
-                </h2>
-            </div>
-
-            <div className="rounded-3xl border border-white/5 bg-zinc-950 p-6">
-                <p className="text-zinc-400 text-sm">Completed</p>
-
-                <h2 className="text-4xl font-bold mt-3 text-emerald-400">
-                    {
-                        tasks.filter(
-                            (task) =>
-                                statuses[task.status] === "Completed"
-                        ).length
-                    }
-                </h2>
-            </div>
+                    <p className={`ml-auto text-lg font-bold ${metric.valueColor}`}>
+                        {metric.value}
+                    </p>
+                </div>
+            ))}
         </div>
     )
 }

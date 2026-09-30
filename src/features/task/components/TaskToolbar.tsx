@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import FilterDropdown from '../../../shared/components/Ui/FilterDropdown';
 import SortDropdown from '../../../shared/components/Ui/SortDropdown';
+import { LabelFilter } from './LabelFilter';
 import { priorities, statuses } from '../../../constants/taskOption';
 
 interface TaskToolbarProps {
@@ -21,6 +22,9 @@ interface TaskToolbarProps {
     onSortOrderChange: (o: 'asc' | 'desc') => void;
     viewMode: 'list' | 'board';
     onViewModeChange: (v: 'list' | 'board') => void;
+    /* Server-side filter theo nhãn (?labelId=) */
+    selectedLabelId?: string | null;
+    onLabelChange?: (v: string | null) => void;
 }
 
 export function TaskToolbar({
@@ -37,6 +41,8 @@ export function TaskToolbar({
     onSortOrderChange,
     viewMode,
     onViewModeChange,
+    selectedLabelId,
+    onLabelChange,
 }: TaskToolbarProps) {
     return (
         <div className="flex flex-col lg:flex-row gap-4 mb-8">
@@ -84,9 +90,19 @@ export function TaskToolbar({
                 ]}
                 onClear={onClearFilters}
                 className="
-                flex items-center gap-1.5 rounded-xl border border-white/10 cursor-pointer hover:bg-zinc-900 transition px-3 h-14
+                flex items-center gap-1.5 rounded-xl border border-white/10 cursor-pointer hover:bg-bg-hover transition px-3 h-14
                 "
             />
+            {/* Label — server-side filter + quản lý nhãn */}
+            {onLabelChange && (
+                <div className="shrink-0">
+                    <LabelFilter
+                        selectedLabelId={selectedLabelId ?? null}
+                        onLabelChange={onLabelChange}
+                    />
+                </div>
+            )}
+
             <SortDropdown
                 title="Sort Tasks"
                 sortBy={sortBy}
@@ -97,7 +113,7 @@ export function TaskToolbar({
                     { label: 'Due Date', value: 'due' },
                     { label: 'Title', value: 'title' },
                 ]}
-                className="flex items-center gap-1.5 rounded-xl border border-white/10 cursor-pointer hover:bg-zinc-900 transition px-3 h-14"
+                className="flex items-center gap-1.5 rounded-xl border border-white/10 cursor-pointer hover:bg-bg-hover transition px-3 h-14"
                 onSortByChange={onSortByChange}
                 onSortOrderChange={onSortOrderChange}
             />

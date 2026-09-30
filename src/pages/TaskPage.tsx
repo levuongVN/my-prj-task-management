@@ -9,7 +9,7 @@ import CreateTaskForm from "../features/task/components/CreateTaskForm";
 import TaskDetailModal from "../features/task/components/TaskDetailModal";
 import TaskBoard from "../features/task/components/TaskBoard";
 import { TaskToolbar } from "../features/task/components/TaskToolbar";
-import { priorities, statuses } from "../constants/taskOption";
+import { priorities, statuses, recurrences, getNextDeadline } from "../constants/taskOption";
 import { useTasks } from "../features/task/hooks/useTask";
 import { useCreateTask } from "../features/task/hooks/useCreateTask";
 import { useUpdateTask } from "../features/task/hooks/useUpdateTask";
@@ -21,14 +21,15 @@ import { useProjects } from "../features/project/hooks";
 
 export default function TaskPage() {
     const [page, setPage] = useState(1);
+    const [selectedLabelId, setSelectedLabelId] = useState<string | null>(null);
     const {
         data: pagedTasks,
         isLoading,
         error,
-    } = useTasks(page, 20);
+    } = useTasks(page, 20, selectedLabelId ?? undefined);
     const tasks = useMemo(() => pagedTasks?.items ?? [], [pagedTasks]);
     const { data: pagedProjects } = useProjects(1, 100);
-    const projects = pagedProjects?.items ?? [];
+    const projects = useMemo(() => pagedProjects?.items ?? [], [pagedProjects]);
     const createTaskMutation = useCreateTask();
     const updateTaskMutation = useUpdateTask();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -118,6 +119,9 @@ export default function TaskPage() {
     const handleStatusChange = useCallback((id: string, status: number) => {
         const task = tasks.find((t) => t.id === id);
         if (!task) return;
+
+        const previousStatus = task.status;
+
         updateTaskMutation.mutate({
             id,
             taskPayload: {
@@ -127,6 +131,30 @@ export default function TaskPage() {
                 priority: task.priority,
                 status,
                 deadline: task.deadline,
+            },
+        }, {
+            onSuccess: () => {
+                // BE tự sinh task kế cho recurring khi chuyển sang Done —
+                // refetch list (task mới nằm đầu, sort createdAt desc)
+                const transitionedToDone =
+                    status === statuses.indexOf("Completed") &&
+                    previousStatus !== statuses.indexOf("Completed");
+
+                if (transitionedToDone && !!task.recurrenceType) {
+                    const next = getNextDeadline(task.deadline, task.recurrenceType);
+                    if (next) {
+                        toast.success(
+                            `Next task created for ${new Date(next).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                        );
+                    }
+                }
+            },
+            onError: (error) => {
+                if (axios.isAxiosError(error)) {
+                    toast.error(error.response?.data?.message ?? "Failed to update task");
+                } else {
+                    toast.error("Unexpected error");
+                }
             },
         })
     }, [tasks, updateTaskMutation]);
@@ -170,6 +198,12 @@ export default function TaskPage() {
                 onSortOrderChange={setSortOrder}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
+                selectedLabelId={selectedLabelId}
+                onLabelChange={(labelId) => {
+                    setSelectedLabelId(labelId);
+                    // labelId đổi → về trang 1 (server-side filter theo key mới)
+                    setPage(1);
+                }}
             />
 
             {/* Stats */}
@@ -243,6 +277,8 @@ export default function TaskPage() {
                         status: statuses.indexOf(data.status),
                         deadline: new Date(data.due).toISOString(),
                         projectId: data.projectId ? data.projectId : null,
+                        labelIds: data.labelIds ?? [],
+                        recurrenceType: recurrences.indexOf(data.recurrence ?? recurrences[0]),
                     },
                         {
                             onSuccess: () => {

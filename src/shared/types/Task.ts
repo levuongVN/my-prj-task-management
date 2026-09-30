@@ -22,6 +22,10 @@ export interface Task {
     projectId?: string | null  // uuid, nullable
     // Checklist — optional để tương thích các nơi chưa truyền từ BE
     subtasks?: TaskSubtaskItem[]
+    // Labels — optional để tương thích các nơi chưa truyền từ BE
+    labels?: { id: string; name: string; color: string }[]
+    /** 0 = không lặp, 1 = daily, 2 = weekly, 3 = monthly */
+    recurrenceType?: number
     totalSubtasks?: number
     completedSubtasks?: number
     progressPercent?: number

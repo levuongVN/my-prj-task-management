@@ -8,9 +8,9 @@ export const createTask = async function (payload: TaskPayload) {
 };
 
 /** BE sort: createdAt giảm dần (mới trước). BE tự clamp page/pageSize. */
-export const getAllTasks = async function (page = 1, pageSize = 20) {
+export const getAllTasks = async function (page = 1, pageSize = 20, labelId?: string) {
     const response = await api.get<PagedResponse<TaskResponse>>("/tasks", {
-        params: { page, pageSize },
+        params: { page, pageSize, ...(labelId ? { labelId } : {}) },
     });
     return response.data;
 }
