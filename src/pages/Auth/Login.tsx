@@ -112,31 +112,16 @@ export default function LoginPage() {
         isReady: isGoogleReady,
         isConfigured: isGoogleConfigured,
         renderButton: renderGoogleButton,
-    } = useGoogleLogin(
-        (idToken) => {
-            setServerError(null)
-            googleMutation.mutate({
-                idToken,
-                device: {
-                    fingerprint: getDeviceFingerprint(),
-                    pushToken: null,
-                },
-            })
-        },
-        // Popup One Tap không hiển thị được → Google trả về lý do cụ thể,
-        // map sang thông tin người dùng có thể xử lý:
-        (reason) => {
-            if (reason === 'opt_out_or_no_session') {
-                // Browser chưa đăng nhập Google account nào, hoặc user đã
-                // opt-out One Tap cho site này (Brave mặc định chặn trackers
-                // nên thường rẽ vào nhánh này).
-                setServerError('No Google session found in this browser. Please sign in to your Google account first, then click Google again.')
-                return
-            }
-
-            setServerError(`Google popup could not open (${reason}). Try allowing third-party cookies for accounts.google.com or check your network/adblocker.`)
-        }
-    )
+    } = useGoogleLogin((idToken) => {
+        setServerError(null)
+        googleMutation.mutate({
+            idToken,
+            device: {
+                fingerprint: getDeviceFingerprint(),
+                pushToken: null,
+            },
+        })
+    })
 
     // Container where GIS renders the official "Continue with Google" button
     const googleBtnRef = useRef<HTMLDivElement>(null)

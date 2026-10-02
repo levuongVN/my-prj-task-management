@@ -8,8 +8,8 @@
  *     (SDK tự ký JWT chứa email/name/... — BE verify chữ ký bằng client
  *      secret, frontend chỉ forward nguyên vẹn.)
  *   - initialize(): đăng ký client_id + callback nhận credential.
- *   - prompt(): mở popup One Tap — gọi khi user bấm nút "Google".
  *   - disableAutoSelect(): tránh tự động chọn account cũ giữa các lần.
+ *   - renderButton(): render nút official của Google (popup chọn account).
  */
 export interface CredentialResponse {
     credential?: string;
@@ -22,18 +22,8 @@ interface GoogleIdApi {
                 client_id: string;
                 callback: (response: CredentialResponse) => void;
                 auto_select?: boolean;
-                /** FedCM: Chrome quản lý popup/cấp quyền thay GIS → không phụ thuộc 3rd-party cookie */
-                use_fedcm_for_prompt?: boolean;
             }): void;
-            /**
-             * prompt() trả về Notification object (qua callback) mô tả kết quả:
-             * isNotDisplayed()/getNotDisplayedReason(), isSkippedMoment(),
-             * isDismissedMoment() — dùng để surface lý do popup không hiện.
-             */
-            prompt(notificationCallback?: (notification: PromptNotification) => void): void;
             disableAutoSelect(): void;
-            /** Render button official của Google; click → popup chọn account
-             *  (ux_mode: "popup"), hoạt động cả khi chưa sign-in session. */
             renderButton(
                 container: HTMLElement,
                 options: {
@@ -48,15 +38,6 @@ interface GoogleIdApi {
             ): void;
         };
     };
-}
-
-interface PromptNotification {
-    isNotDisplayed(): boolean;
-    getNotDisplayedReason(): string;
-    isSkippedMoment(): boolean;
-    getSkippedReason(): string;
-    isDismissedMoment(): boolean;
-    getDismissedReason(): string;
 }
 
 declare global {

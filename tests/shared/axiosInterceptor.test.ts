@@ -1,4 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { AUTH_STORAGE_KEYS } from '../../src/shared/utils/authStorage'
 
 /**
  * Mock axios TRƯỚC khi import module interceptor để bắt tay interceptor.
@@ -54,7 +55,7 @@ beforeEach(() => {
 
 describe('request interceptor — gắn Bearer token', () => {
   it('Có accessToken trong localStorage → header Authorization', () => {
-    localStorage.setItem('accessToken', 'tok-1')
+    localStorage.setItem(AUTH_STORAGE_KEYS.accessToken, 'tok-1')
     const config = { headers: {} as Record<string, string> }
 
     const out = requestInterceptor(config)
@@ -86,7 +87,7 @@ describe('response interceptor — luồng 401 auto refresh', () => {
   })
 
   it('401 lần đầu → gọi refresh, lưu token mới, retry request cũ', async () => {
-    localStorage.setItem('refreshToken', 'rt-old')
+    localStorage.setItem(AUTH_STORAGE_KEYS.refreshToken, 'rt-old')
     vi.mocked(axios.post).mockResolvedValue({
       data: {
         accessToken: 'at-new',
@@ -106,9 +107,9 @@ describe('response interceptor — luồng 401 auto refresh', () => {
       'http://api.test/auth/refresh-token',
       { refreshToken: 'rt-old' },
     )
-    expect(localStorage.getItem('accessToken')).toBe('at-new')
-    expect(localStorage.getItem('refreshToken')).toBe('rt-new')
-    expect(localStorage.getItem('user')).toBe(JSON.stringify({ id: 'u1' }))
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.accessToken)).toBe('at-new')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken)).toBe('rt-new')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.user)).toBe(JSON.stringify({ id: 'u1' }))
     expect(apiInstance).toHaveBeenCalledTimes(1)
     expect(apiInstance.mock.calls[0][0].headers.Authorization).toBe(
       'Bearer at-new',
@@ -117,8 +118,8 @@ describe('response interceptor — luồng 401 auto refresh', () => {
   })
 
   it('401 mà KHÔNG có refreshToken → về login, không gọi refresh', async () => {
-    localStorage.setItem('accessToken', 'at')
-    localStorage.setItem('user', '{}')
+    localStorage.setItem(AUTH_STORAGE_KEYS.accessToken, 'at')
+    localStorage.setItem(AUTH_STORAGE_KEYS.user, '{}')
 
     Object.defineProperty(window, 'location', {
       value: { href: 'http://localhost:5173/' },
@@ -130,12 +131,12 @@ describe('response interceptor — luồng 401 auto refresh', () => {
     await expect(responseErr(err)).rejects.toBeTruthy()
 
     expect(axios.post).not.toHaveBeenCalled()
-    expect(localStorage.getItem('accessToken')).toBeNull()
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.accessToken)).toBeNull()
     expect(window.location.href).toContain('/login')
   })
 
   it('Nhiều request 401 đồng thời → chỉ refresh ĐÚNG 1 lần (single-flight)', async () => {
-    localStorage.setItem('refreshToken', 'rt-old')
+    localStorage.setItem(AUTH_STORAGE_KEYS.refreshToken, 'rt-old')
     let resolveRefresh!: (v: unknown) => void
     vi.mocked(axios.post).mockReturnValue(
       new Promise((resolve) => {
@@ -164,9 +165,9 @@ describe('response interceptor — luồng 401 auto refresh', () => {
   })
 
   it('Refresh bị BE từ chối (401) → xoá 3 key auth và redirect /login', async () => {
-    localStorage.setItem('accessToken', 'at')
-    localStorage.setItem('refreshToken', 'rt')
-    localStorage.setItem('user', '{}')
+    localStorage.setItem(AUTH_STORAGE_KEYS.accessToken, 'at')
+    localStorage.setItem(AUTH_STORAGE_KEYS.refreshToken, 'rt')
+    localStorage.setItem(AUTH_STORAGE_KEYS.user, '{}')
     vi.mocked(axios.post).mockRejectedValue({ response: { status: 401 } })
 
     // jsdom không implement navigation — thay location để quan sát redirect
@@ -179,16 +180,16 @@ describe('response interceptor — luồng 401 auto refresh', () => {
     const err = makeError({ headers: {}, _retry: false }, 401)
 
     await expect(responseErr(err)).rejects.toBeTruthy()
-    expect(localStorage.getItem('accessToken')).toBeNull()
-    expect(localStorage.getItem('refreshToken')).toBeNull()
-    expect(localStorage.getItem('user')).toBeNull()
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.accessToken)).toBeNull()
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken)).toBeNull()
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.user)).toBeNull()
     expect(window.location.href).toContain('/login')
   })
 
   it('Refresh lỗi mạng (không có response) → GIỮ phiên, không redirect', async () => {
-    localStorage.setItem('accessToken', 'at')
-    localStorage.setItem('refreshToken', 'rt')
-    localStorage.setItem('user', '{}')
+    localStorage.setItem(AUTH_STORAGE_KEYS.accessToken, 'at')
+    localStorage.setItem(AUTH_STORAGE_KEYS.refreshToken, 'rt')
+    localStorage.setItem(AUTH_STORAGE_KEYS.user, '{}')
     vi.mocked(axios.post).mockRejectedValue(new Error('network down'))
 
     Object.defineProperty(window, 'location', {
@@ -200,16 +201,16 @@ describe('response interceptor — luồng 401 auto refresh', () => {
     const err = makeError({ headers: {}, _retry: false }, 401)
 
     await expect(responseErr(err)).rejects.toBeTruthy()
-    expect(localStorage.getItem('accessToken')).toBe('at')
-    expect(localStorage.getItem('refreshToken')).toBe('rt')
-    expect(localStorage.getItem('user')).toBe('{}')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.accessToken)).toBe('at')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken)).toBe('rt')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.user)).toBe('{}')
     expect(window.location.href).toBe('http://localhost:5173/dashboard')
   })
 
   it('Refresh 400 dạng { message } (token bị từ chối) → xoá phiên + login', async () => {
-    localStorage.setItem('accessToken', 'at')
-    localStorage.setItem('refreshToken', 'rt')
-    localStorage.setItem('user', '{}')
+    localStorage.setItem(AUTH_STORAGE_KEYS.accessToken, 'at')
+    localStorage.setItem(AUTH_STORAGE_KEYS.refreshToken, 'rt')
+    localStorage.setItem(AUTH_STORAGE_KEYS.user, '{}')
     vi.mocked(axios.post).mockRejectedValue({
       response: { status: 400, data: { message: 'Refresh token not found' } },
     })
@@ -223,14 +224,14 @@ describe('response interceptor — luồng 401 auto refresh', () => {
     const err = makeError({ headers: {}, _retry: false }, 401)
     await expect(responseErr(err)).rejects.toBeTruthy()
 
-    expect(localStorage.getItem('refreshToken')).toBeNull()
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken)).toBeNull()
     expect(window.location.href).toContain('/login')
   })
 
   it('Refresh 400 dạng ProblemDetails (bind fail) → GIỮ phiên, không redirect', async () => {
-    localStorage.setItem('accessToken', 'at')
-    localStorage.setItem('refreshToken', 'rt')
-    localStorage.setItem('user', '{}')
+    localStorage.setItem(AUTH_STORAGE_KEYS.accessToken, 'at')
+    localStorage.setItem(AUTH_STORAGE_KEYS.refreshToken, 'rt')
+    localStorage.setItem(AUTH_STORAGE_KEYS.user, '{}')
     vi.mocked(axios.post).mockRejectedValue({
       response: {
         status: 400,
@@ -252,12 +253,12 @@ describe('response interceptor — luồng 401 auto refresh', () => {
     const err = makeError({ headers: {}, _retry: false }, 401)
     await expect(responseErr(err)).rejects.toBeTruthy()
 
-    expect(localStorage.getItem('refreshToken')).toBe('rt')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken)).toBe('rt')
     expect(window.location.href).toBe('http://localhost:5173/dashboard')
   })
 
   it('Refresh không xoay token → giữ refresh token cũ', async () => {
-    localStorage.setItem('refreshToken', 'rt-old')
+    localStorage.setItem(AUTH_STORAGE_KEYS.refreshToken, 'rt-old')
     vi.mocked(axios.post).mockResolvedValue({
       data: { accessToken: 'at-new', user: null },
     })
@@ -265,12 +266,12 @@ describe('response interceptor — luồng 401 auto refresh', () => {
     const err = makeError({ headers: {}, _retry: false }, 401)
     await responseErr(err)
 
-    expect(localStorage.getItem('accessToken')).toBe('at-new')
-    expect(localStorage.getItem('refreshToken')).toBe('rt-old')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.accessToken)).toBe('at-new')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken)).toBe('rt-old')
   })
 
   it('Refresh trả refresh token dạng string → lưu string đó', async () => {
-    localStorage.setItem('refreshToken', 'rt-old')
+    localStorage.setItem(AUTH_STORAGE_KEYS.refreshToken, 'rt-old')
     vi.mocked(axios.post).mockResolvedValue({
       data: { accessToken: 'at-new', refreshToken: 'rt-new', user: null },
     })
@@ -278,7 +279,7 @@ describe('response interceptor — luồng 401 auto refresh', () => {
     const err = makeError({ headers: {}, _retry: false }, 401)
     await responseErr(err)
 
-    expect(localStorage.getItem('refreshToken')).toBe('rt-new')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken)).toBe('rt-new')
   })
 
   it('Response thành công → passthrough nguyên response', () => {

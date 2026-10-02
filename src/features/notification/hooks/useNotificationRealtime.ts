@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { useNotificationStore } from "../../notification/store/notificationStore";
+import { getAccessToken } from "../../../shared/utils/authStorage";
 import type { NotificationDto } from "../types";
 
 const HUB_URL = `${import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "")}/hubs/notification`;
@@ -12,7 +13,7 @@ export function useNotificationRealtime() {
         const connection = new HubConnectionBuilder()
             .withUrl(HUB_URL, {
                 accessTokenFactory: () =>
-                    localStorage.getItem("accessToken") ?? "",
+                    getAccessToken() ?? "",
             })
             .withAutomaticReconnect()
             .configureLogging(LogLevel.Warning)

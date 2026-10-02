@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { AlertTriangle } from 'lucide-react'
 
 import { refreshAccessToken } from '../shared/services/axios'
+import { getAccessToken, getRefreshToken } from '../shared/utils/authStorage'
 import { isTokenExpired } from '../shared/utils/token'
 import Loading from '../shared/components/Ui/Loading'
 import Button from '../shared/components/Ui/Button'
@@ -24,9 +25,9 @@ type Status = 'checking' | 'authenticated' | 'unauthenticated' | 'error'
  * miễn refreshToken còn hiệu lực.
  */
 function getInitialStatus(): Status {
-  const accessToken = localStorage.getItem('accessToken')
+  const accessToken = getAccessToken()
   if (accessToken && !isTokenExpired(accessToken)) return 'authenticated'
-  if (localStorage.getItem('refreshToken')) return 'checking'
+  if (getRefreshToken()) return 'checking'
   return 'unauthenticated'
 }
 
@@ -46,7 +47,7 @@ export default function ProtectedRoute({ children }: Props) {
         if (cancelled) return
         // refreshAccessToken xoá token khi bị từ chối dứt khoát (400/401/403).
         // Còn token ⇒ lỗi tạm thời ⇒ giữ phiên và cho thử lại.
-        setStatus(localStorage.getItem('refreshToken') ? 'error' : 'unauthenticated')
+        setStatus(getRefreshToken() ? 'error' : 'unauthenticated')
       })
 
     return () => {

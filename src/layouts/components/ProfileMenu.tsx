@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronDown, LogOut, User as UserIcon } from "lucide-react";
 import { useUser } from "../../features/user/hooks/useUser";
 import { logout } from "../../features/auth/services/auth.service";
+import { clearAuthStorage, getRefreshToken } from "../../shared/utils/authStorage";
 import toast from "react-hot-toast";
 
 export function ProfileMenu() {
@@ -37,16 +38,14 @@ export function ProfileMenu() {
 
     const handleLogout = async () => {
         try {
-            const refreshToken = localStorage.getItem("refreshToken");
+            const refreshToken = getRefreshToken();
             if (refreshToken) {
                 await logout({ refreshToken });
             }
         } catch {
             // API lỗi vẫn phải đăng xuất local, không chặn user
         } finally {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
-            localStorage.removeItem("user");
+            clearAuthStorage();
             toast.success("Logged out successfully");
             window.location.href = "/login";
         }

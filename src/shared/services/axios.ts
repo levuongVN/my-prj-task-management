@@ -1,4 +1,12 @@
 import axios from 'axios'
+import {
+  clearAuthStorage,
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  setRefreshToken,
+  setStoredUser,
+} from '../utils/authStorage'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -46,25 +54,18 @@ function isRefreshTokenRejected(error: unknown): boolean {
   return typeof (data as { message?: unknown }).message === 'string'
 }
 
-/** Xoá toàn bộ dữ liệu phiên (3 key mà interceptor/bootstrap đọc). */
-export function clearAuthStorage() {
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
-  localStorage.removeItem('user')
-}
-
 /**
- * Gọi POST /auth/refresh-token bằng refreshToken trong localStorage, lưu
- * accessToken mới rồi trả về. Single-flight: gọi song song dùng chung 1 request.
+ * Gọi POST /auth/refresh-token bằng refreshToken đã lưu, lưu accessToken mới
+ * rồi trả về. Single-flight: gọi song song dùng chung 1 request.
  *
- * - Refresh token bị BE từ chối dứt khoát (400/401/403) → clearAuthStorage().
+ * - Refresh token bị BE từ chối dứt khoát (400 {message}/401/403) → clearAuthStorage().
  * - Lỗi mạng/5xx là tạm thời → KHÔNG xoá phiên.
  *
  * Dùng chung cho: bootstrap lúc app khởi động + interceptor khi request 401.
  */
 export function refreshAccessToken(): Promise<string> {
   if (!refreshPromise) {
-    const refreshToken = localStorage.getItem('refreshToken')
+    const refreshToken = getRefreshToken()
 
     refreshPromise = axios
       .post(`${import.meta.env.VITE_API_URL}/auth/refresh-token`, {
@@ -73,18 +74,18 @@ export function refreshAccessToken(): Promise<string> {
       .then((res) => {
         const { accessToken, refreshToken: newRefresh, user } = res.data
 
-        localStorage.setItem('accessToken', accessToken)
+        setAccessToken(accessToken)
 
         // BE có thể trả refresh token dạng object { token }, dạng string,
         // hoặc không xoay token → chỉ ghi đè khi thực sự có token mới.
         const nextRefreshToken =
           typeof newRefresh === 'string' ? newRefresh : newRefresh?.token
         if (nextRefreshToken) {
-          localStorage.setItem('refreshToken', nextRefreshToken)
+          setRefreshToken(nextRefreshToken)
         }
 
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user))
+          setStoredUser(user)
         }
 
         return accessToken
@@ -110,7 +111,7 @@ export function refreshAccessToken(): Promise<string> {
  * Tự động gắn access token
  */
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken')
+  const token = getAccessToken()
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -135,7 +136,7 @@ api.interceptors.response.use(
 
       // Không có refreshToken thì không thể refresh → về login luôn,
       // tránh gửi body { refreshToken: null } gây 400 vô nghĩa.
-      if (!localStorage.getItem('refreshToken')) {
+      if (!getRefreshToken()) {
         clearAuthStorage()
         window.location.href = '/login'
         return Promise.reject(error)
@@ -150,7 +151,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // refreshAccessToken chỉ xoá refreshToken khi bị từ chối dứt khoát.
         // Còn token ⇒ lỗi tạm thời ⇒ không đá về login, để lần sau thử lại.
-        if (!localStorage.getItem('refreshToken')) {
+        if (!getRefreshToken()) {
           window.location.href = '/login'
         }
 

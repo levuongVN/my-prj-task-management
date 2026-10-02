@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { MessagesSquare, Pencil, Trash2 } from "lucide-react";
 import Button from "../../../shared/components/Ui/Button";
 import Loading from "../../../shared/components/Ui/Loading";
+import { getAccessToken } from "../../../shared/utils/authStorage";
 import { useComments } from "../../comment/hooks/useComments";
 import { useCreateComment } from "../../comment/hooks/useCreateComment";
 import { useUpdateComment } from "../../comment/hooks/useUpdateComment";
@@ -65,7 +66,7 @@ export default function CommentSection({ taskId }: CommentSectionProps) {
     // userId từ claim "sub" của access token — xác định comment nào thuộc về user
     const currentUserId = (() => {
         try {
-            const token = localStorage.getItem("accessToken");
+            const token = getAccessToken();
             if (!token) return null;
             return (jwtDecode<{ sub?: string }>(token).sub ?? null);
         } catch {

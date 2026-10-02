@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import type { CredentialResponse } from "./useGoogleLogin.types";
 
 /**
- * Google One Tap login hook.
+ * Google Identity Services (GIS) login hook.
  *
  * Vì sao cần phần này (frontend làm gì, BE không lo được):
  *  - BE endpoint /auth/google chỉ nhận { idToken, device }, nhưng idToken
@@ -18,19 +18,12 @@ import type { CredentialResponse } from "./useGoogleLogin.types";
  * Safe under StrictMode double-effect: initialize() là idempotent, script
  * chỉ append một lần (check theo id "google-gsi-script").
  */
-export function useGoogleLogin(
-    onCredential: (idToken: string) => void,
-    onPromptNotShown?: (reason: string) => void
-) {
+export function useGoogleLogin(onCredential: (idToken: string) => void) {
     const onCredentialRef = useRef(onCredential);
-
-    // Keep the latest callbacks without re-initializing the SDK
-    const onPromptNotShownRef = useRef(onPromptNotShown);
 
     useEffect(() => {
         onCredentialRef.current = onCredential;
-        onPromptNotShownRef.current = onPromptNotShown;
-    }, [onCredential, onPromptNotShown]);
+    }, [onCredential]);
 
     useEffect(() => {
         const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -50,10 +43,6 @@ export function useGoogleLogin(
                     }
                 },
                 auto_select: false,
-                // FedCM: Chrome điều phối prompt thay GIS → hoạt động ngay cả khi
-                // third-party cookie bị chặn (nguyên nhân phổ biến của lỗi 400
-                // trên accounts.google.com/gsi/status)
-                use_fedcm_for_prompt: true,
             });
         };
 
@@ -73,29 +62,6 @@ export function useGoogleLogin(
         script.onload = initialize;
         document.head.appendChild(script);
     }, []);
-
-    /** Mở popup One Tap. Chỉ gọi khi isReady() === true (script đã load). */
-    const prompt = () => {
-        if (typeof window === "undefined" || !window.google) return;
-        // Notification callback cho biết popup có hiển thị không; dùng để
-        // surface lý do thật (browser_chrome_webview, expired_api_client,
-        // third_party_cookies_blocked, suppress_ifframes_without_tabs_user_gesture...)
-        // thay vì để UI im lặng như trước.
-        window.google.accounts.id.prompt((notification) => {
-            let reason: string | null = null;
-            if (notification.isNotDisplayed()) {
-                reason = notification.getNotDisplayedReason();
-            } else if (notification.isSkippedMoment()) {
-                reason = notification.getSkippedReason();
-            } else if (notification.isDismissedMoment()) {
-                reason = notification.getDismissedReason();
-            }
-
-            if (reason && reason !== "dismissed_by_user" && reason !== "credential_returned") {
-                onPromptNotShownRef.current?.(reason);
-            }
-        });
-    };
 
     /**
      * Render button "Sign in with Google" official vào container truyền vào.
@@ -125,5 +91,5 @@ export function useGoogleLogin(
     /** Client ID có được cấu hình qua env không (thiếu → hiện message hướng dẫn). */
     const isConfigured = () => !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-    return { prompt, isReady, isConfigured, renderButton };
+    return { isReady, isConfigured, renderButton };
 }

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { persistAuthResponse } from '../../src/features/auth/utils/persistAuth'
 import { getDeviceFingerprint } from '../../src/features/auth/utils/fingerprint'
+import { AUTH_STORAGE_KEYS } from '../../src/shared/utils/authStorage'
 
 describe('persistAuthResponse', () => {
   beforeEach(() => localStorage.clear())
@@ -12,9 +13,9 @@ describe('persistAuthResponse', () => {
       user: { id: 'u1', email: 'a@b.com' },
     } as never)
 
-    expect(localStorage.getItem('accessToken')).toBe('at-123')
-    expect(localStorage.getItem('refreshToken')).toBe('rt-456')
-    expect(localStorage.getItem('user')).toBe(
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.accessToken)).toBe('at-123')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken)).toBe('rt-456')
+    expect(localStorage.getItem(AUTH_STORAGE_KEYS.user)).toBe(
       JSON.stringify({ id: 'u1', email: 'a@b.com' }),
     )
   })

@@ -1,4 +1,5 @@
 import api, { refreshAccessToken } from "../../../shared/services/axios";
+import { getAccessToken } from "../../../shared/utils/authStorage";
 import type { PagedResponse } from "../../../shared/types/PagedResponse";
 import type {
     BreakdownSuggestion,
@@ -22,7 +23,7 @@ function requestChat(message: string, sessionId: string | null, signal?: AbortSi
         headers: {
             "Content-Type": "application/json",
             Accept: "text/event-stream",
-            Authorization: `Bearer ${localStorage.getItem("accessToken") ?? ""}`,
+            Authorization: `Bearer ${getAccessToken() ?? ""}`,
         },
         body: JSON.stringify({ sessionId, message }),
         signal,

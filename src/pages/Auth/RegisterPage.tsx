@@ -100,21 +100,16 @@ export default function RegisterPage() {
         isReady: isGoogleReady,
         isConfigured: isGoogleConfigured,
         renderButton: renderGoogleButton,
-    } = useGoogleLogin(
-        (idToken) => {
-            setServerError(null)
-            googleMutation.mutate({
-                idToken,
-                device: {
-                    fingerprint: getDeviceFingerprint(),
-                    pushToken: null,
-                },
-            })
-        },
-        (reason) => {
-            setServerError(`Google popup could not open (${reason}).`)
-        }
-    )
+    } = useGoogleLogin((idToken) => {
+        setServerError(null)
+        googleMutation.mutate({
+            idToken,
+            device: {
+                fingerprint: getDeviceFingerprint(),
+                pushToken: null,
+            },
+        })
+    })
 
     useEffect(() => {
         if (!isGoogleConfigured()) return
