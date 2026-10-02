@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   FolderKanban,
   LayoutDashboard,
+  MessageSquare,
   Settings,
   Sparkles,
   TrendingUp,
@@ -24,6 +25,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     { icon: FolderKanban,     label: 'Projects',  path: '/projects' },
     { icon: CalendarDays,     label: 'Calendar',  path: '/calendar' },
     { icon: TrendingUp,       label: 'Analytics', path: '/analytics' },
+    { icon: MessageSquare,    label: 'AI Assistant', path: '/chat' },
     { icon: Bell,             label: 'Notifications', path: '/notifications' },
     { icon: Settings,         label: 'Settings',  path: '/settings' },
   ]

@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom'
 
 import Topbar from './components/Topbar'
 import Sidebar from './components/Sidebar'
+import { ChatWidget } from '../features/chat/components/ChatWidget'
 import { EmailVerificationBanner } from './components/EmailVerificationBanner'
 import { useNotificationStore } from '../features/notification/store/notificationStore'
 import { useNotificationRealtime } from '../features/notification/hooks/useNotificationRealtime'
@@ -32,6 +33,8 @@ export default function DashboardLayout() {
           <Outlet />
         </div>
       </main>
+
+      <ChatWidget />
     </div>
   )
 }

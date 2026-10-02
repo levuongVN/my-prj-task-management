@@ -19,8 +19,8 @@ vi.mock('axios', () => {
   }
 })
 
-type ReqInterceptor = (config: Record<string, any>) => Record<string, any>
-type ResErrInterceptor = (error: any) => Promise<any>
+type ReqInterceptor = (config: Record<string, unknown>) => Record<string, unknown>
+type ResErrInterceptor = (error: unknown) => Promise<unknown>
 
 let requestInterceptor: ReqInterceptor
 let responseOk: (res: unknown) => unknown
@@ -38,7 +38,7 @@ beforeAll(async () => {
 
 const { default: axios } = await import('axios')
 
-const makeError = (config: Record<string, any>, status: number) => ({
+const makeError = (config: Record<string, unknown>, status: number) => ({
   config,
   response: { status },
 })
@@ -116,7 +116,26 @@ describe('response interceptor — luồng 401 auto refresh', () => {
     expect(res).toMatchObject({ retried: true })
   })
 
+  it('401 mà KHÔNG có refreshToken → về login, không gọi refresh', async () => {
+    localStorage.setItem('accessToken', 'at')
+    localStorage.setItem('user', '{}')
+
+    Object.defineProperty(window, 'location', {
+      value: { href: 'http://localhost:5173/' },
+      writable: true,
+      configurable: true,
+    })
+
+    const err = makeError({ headers: {}, _retry: false }, 401)
+    await expect(responseErr(err)).rejects.toBeTruthy()
+
+    expect(axios.post).not.toHaveBeenCalled()
+    expect(localStorage.getItem('accessToken')).toBeNull()
+    expect(window.location.href).toContain('/login')
+  })
+
   it('Nhiều request 401 đồng thời → chỉ refresh ĐÚNG 1 lần (single-flight)', async () => {
+    localStorage.setItem('refreshToken', 'rt-old')
     let resolveRefresh!: (v: unknown) => void
     vi.mocked(axios.post).mockReturnValue(
       new Promise((resolve) => {
@@ -144,11 +163,11 @@ describe('response interceptor — luồng 401 auto refresh', () => {
     expect(apiInstance).toHaveBeenCalledTimes(2)
   })
 
-  it('Refresh thất bại → xoá 3 key auth và redirect /login', async () => {
+  it('Refresh bị BE từ chối (401) → xoá 3 key auth và redirect /login', async () => {
     localStorage.setItem('accessToken', 'at')
     localStorage.setItem('refreshToken', 'rt')
     localStorage.setItem('user', '{}')
-    vi.mocked(axios.post).mockRejectedValue(new Error('refresh dead'))
+    vi.mocked(axios.post).mockRejectedValue({ response: { status: 401 } })
 
     // jsdom không implement navigation — thay location để quan sát redirect
     Object.defineProperty(window, 'location', {
@@ -164,6 +183,102 @@ describe('response interceptor — luồng 401 auto refresh', () => {
     expect(localStorage.getItem('refreshToken')).toBeNull()
     expect(localStorage.getItem('user')).toBeNull()
     expect(window.location.href).toContain('/login')
+  })
+
+  it('Refresh lỗi mạng (không có response) → GIỮ phiên, không redirect', async () => {
+    localStorage.setItem('accessToken', 'at')
+    localStorage.setItem('refreshToken', 'rt')
+    localStorage.setItem('user', '{}')
+    vi.mocked(axios.post).mockRejectedValue(new Error('network down'))
+
+    Object.defineProperty(window, 'location', {
+      value: { href: 'http://localhost:5173/dashboard' },
+      writable: true,
+      configurable: true,
+    })
+
+    const err = makeError({ headers: {}, _retry: false }, 401)
+
+    await expect(responseErr(err)).rejects.toBeTruthy()
+    expect(localStorage.getItem('accessToken')).toBe('at')
+    expect(localStorage.getItem('refreshToken')).toBe('rt')
+    expect(localStorage.getItem('user')).toBe('{}')
+    expect(window.location.href).toBe('http://localhost:5173/dashboard')
+  })
+
+  it('Refresh 400 dạng { message } (token bị từ chối) → xoá phiên + login', async () => {
+    localStorage.setItem('accessToken', 'at')
+    localStorage.setItem('refreshToken', 'rt')
+    localStorage.setItem('user', '{}')
+    vi.mocked(axios.post).mockRejectedValue({
+      response: { status: 400, data: { message: 'Refresh token not found' } },
+    })
+
+    Object.defineProperty(window, 'location', {
+      value: { href: 'http://localhost:5173/' },
+      writable: true,
+      configurable: true,
+    })
+
+    const err = makeError({ headers: {}, _retry: false }, 401)
+    await expect(responseErr(err)).rejects.toBeTruthy()
+
+    expect(localStorage.getItem('refreshToken')).toBeNull()
+    expect(window.location.href).toContain('/login')
+  })
+
+  it('Refresh 400 dạng ProblemDetails (bind fail) → GIỮ phiên, không redirect', async () => {
+    localStorage.setItem('accessToken', 'at')
+    localStorage.setItem('refreshToken', 'rt')
+    localStorage.setItem('user', '{}')
+    vi.mocked(axios.post).mockRejectedValue({
+      response: {
+        status: 400,
+        data: {
+          type: 'https://tools.ietf.org/html/rfc9110#section-15.5.1',
+          title: 'One or more validation errors occurred.',
+          status: 400,
+          errors: { RefreshToken: ['The RefreshToken field is required.'] },
+        },
+      },
+    })
+
+    Object.defineProperty(window, 'location', {
+      value: { href: 'http://localhost:5173/dashboard' },
+      writable: true,
+      configurable: true,
+    })
+
+    const err = makeError({ headers: {}, _retry: false }, 401)
+    await expect(responseErr(err)).rejects.toBeTruthy()
+
+    expect(localStorage.getItem('refreshToken')).toBe('rt')
+    expect(window.location.href).toBe('http://localhost:5173/dashboard')
+  })
+
+  it('Refresh không xoay token → giữ refresh token cũ', async () => {
+    localStorage.setItem('refreshToken', 'rt-old')
+    vi.mocked(axios.post).mockResolvedValue({
+      data: { accessToken: 'at-new', user: null },
+    })
+
+    const err = makeError({ headers: {}, _retry: false }, 401)
+    await responseErr(err)
+
+    expect(localStorage.getItem('accessToken')).toBe('at-new')
+    expect(localStorage.getItem('refreshToken')).toBe('rt-old')
+  })
+
+  it('Refresh trả refresh token dạng string → lưu string đó', async () => {
+    localStorage.setItem('refreshToken', 'rt-old')
+    vi.mocked(axios.post).mockResolvedValue({
+      data: { accessToken: 'at-new', refreshToken: 'rt-new', user: null },
+    })
+
+    const err = makeError({ headers: {}, _retry: false }, 401)
+    await responseErr(err)
+
+    expect(localStorage.getItem('refreshToken')).toBe('rt-new')
   })
 
   it('Response thành công → passthrough nguyên response', () => {

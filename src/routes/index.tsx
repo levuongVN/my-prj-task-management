@@ -17,6 +17,7 @@ import CalendarPage from "../pages/CalendarPage";
 import AnalyticsPage from "../pages/AnalyticPage";
 import SettingsPage from "../pages/SettingsPage";
 import NotificationPage from "../pages/NotificationPage";
+import ChatPage from "../pages/ChatPage";
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -46,6 +47,7 @@ function AppRoutes() {
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/notifications" element={<NotificationPage />} />
+          <Route path="/chat" element={<ChatPage />} />
         </Route>
 
         {/* DEFAULT */}

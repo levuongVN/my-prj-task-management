@@ -21,6 +21,7 @@ import useDeleteTask from "../hooks/useDeleteTask";
 import { useProjects } from "../../project/hooks";
 import CommentSection from "./CommentSection";
 import SubtaskSection from "./SubtaskSection";
+import { TaskBreakdownPanel } from "../../chat/components/TaskBreakdownPanel";
 import { LabelChip } from "../../../shared/components/Ui/LabelChip";
 import { Tag } from "lucide-react";
 
@@ -216,6 +217,8 @@ export default function TaskDetailModal({ isOpen, task, onClose }: Props) {
                             <Pencil size={14} />
                             Edit
                         </Button>
+
+                        <TaskBreakdownPanel taskId={task.id} />
 
                         {/* Primary để hiển thị rõ là action chính, đổi theo theme accent */}
                         <Button

@@ -6,10 +6,104 @@ const api = axios.create({
 
 /**
  * Shared refresh promise — chống gọi refresh đồng thời.
- * Khi nhiều request 401 cùng lúc, chỉ gọi refresh 1 lần,
- * các request khác chờ cùng promise đó.
+ * Khi nhiều request 401 cùng lúc (hoặc bootstrap + request), chỉ gọi refresh
+ * 1 lần, các nơi khác chờ cùng promise đó.
  */
 let refreshPromise: Promise<string> | null = null
+
+/** Đọc HTTP status từ lỗi axios mà không phụ thuộc `axios.isAxiosError`. */
+function getErrorStatus(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null || !('response' in error)) {
+    return undefined
+  }
+  const response = (error as { response?: { status?: unknown } }).response
+  return typeof response?.status === 'number' ? response.status : undefined
+}
+
+/** Đọc body lỗi (nếu có). */
+function getErrorData(error: unknown): unknown {
+  if (typeof error !== 'object' || error === null || !('response' in error)) {
+    return undefined
+  }
+  return (error as { response?: { data?: unknown } }).response?.data
+}
+
+/**
+ * BE trả 400 cho 2 trường hợp khác nhau:
+ *  - Bind fail / thiếu field → ProblemDetails ({ title, errors, ... }).
+ *  - Token không tồn tại/hết hạn/revoked/device inactive → { message }.
+ * Chỉ trường hợp thứ 2 (hoặc 401/403) mới coi là "session chết".
+ */
+function isRefreshTokenRejected(error: unknown): boolean {
+  const status = getErrorStatus(error)
+  if (status === 401 || status === 403) return true
+  if (status !== 400) return false
+
+  const data = getErrorData(error)
+  if (typeof data !== 'object' || data === null) return false
+  if ('errors' in data || 'title' in data) return false
+
+  return typeof (data as { message?: unknown }).message === 'string'
+}
+
+/** Xoá toàn bộ dữ liệu phiên (3 key mà interceptor/bootstrap đọc). */
+export function clearAuthStorage() {
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('refreshToken')
+  localStorage.removeItem('user')
+}
+
+/**
+ * Gọi POST /auth/refresh-token bằng refreshToken trong localStorage, lưu
+ * accessToken mới rồi trả về. Single-flight: gọi song song dùng chung 1 request.
+ *
+ * - Refresh token bị BE từ chối dứt khoát (400/401/403) → clearAuthStorage().
+ * - Lỗi mạng/5xx là tạm thời → KHÔNG xoá phiên.
+ *
+ * Dùng chung cho: bootstrap lúc app khởi động + interceptor khi request 401.
+ */
+export function refreshAccessToken(): Promise<string> {
+  if (!refreshPromise) {
+    const refreshToken = localStorage.getItem('refreshToken')
+
+    refreshPromise = axios
+      .post(`${import.meta.env.VITE_API_URL}/auth/refresh-token`, {
+        refreshToken,
+      })
+      .then((res) => {
+        const { accessToken, refreshToken: newRefresh, user } = res.data
+
+        localStorage.setItem('accessToken', accessToken)
+
+        // BE có thể trả refresh token dạng object { token }, dạng string,
+        // hoặc không xoay token → chỉ ghi đè khi thực sự có token mới.
+        const nextRefreshToken =
+          typeof newRefresh === 'string' ? newRefresh : newRefresh?.token
+        if (nextRefreshToken) {
+          localStorage.setItem('refreshToken', nextRefreshToken)
+        }
+
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user))
+        }
+
+        return accessToken
+      })
+      .catch((error) => {
+        // Chỉ xoá phiên khi refresh token bị BE từ chối dứt khoát.
+        // 400 bind-fail (ProblemDetails) không phải lỗi token → giữ phiên.
+        if (isRefreshTokenRejected(error)) {
+          clearAuthStorage()
+        }
+        throw error
+      })
+      .finally(() => {
+        refreshPromise = null
+      })
+  }
+
+  return refreshPromise
+}
 
 /**
  * REQUEST INTERCEPTOR
@@ -27,7 +121,8 @@ api.interceptors.request.use((config) => {
 
 /**
  * RESPONSE INTERCEPTOR
- * Auto refresh token khi access token hết hạn
+ * Request bị 401 → thử refresh 1 lần rồi retry request cũ.
+ * Refresh fail (bị từ chối dứt khoát) mới đá về login.
  */
 api.interceptors.response.use(
   (response) => response,
@@ -35,52 +130,29 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
-    /**
-     * Nếu access token expired
-     */
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true
 
+      // Không có refreshToken thì không thể refresh → về login luôn,
+      // tránh gửi body { refreshToken: null } gây 400 vô nghĩa.
+      if (!localStorage.getItem('refreshToken')) {
+        clearAuthStorage()
+        window.location.href = '/login'
+        return Promise.reject(error)
+      }
+
       try {
-        // Nếu đã có refresh đang chạy → dùng chung promise đó
-        if (!refreshPromise) {
-          const refreshToken = localStorage.getItem('refreshToken')
+        const newAccessToken = await refreshAccessToken()
 
-          refreshPromise = axios
-            .post(
-              `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
-              { refreshToken }
-            )
-            .then((res) => {
-              const { accessToken, refreshToken: newRefresh, user } = res.data
-
-              localStorage.setItem('accessToken', accessToken)
-              localStorage.setItem('refreshToken', newRefresh.token)
-              if (user) {
-                localStorage.setItem('user', JSON.stringify(user))
-              }
-
-              return accessToken
-            })
-            .finally(() => {
-              refreshPromise = null
-            })
-        }
-
-        const newAccessToken = await refreshPromise
-
-        // Gắn lại token cho request cũ
+        // Gắn lại token cho request cũ rồi retry
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
-
-        // Retry request cũ
         return api(originalRequest)
       } catch (refreshError) {
-        // Refresh token cũng chết → logout
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        localStorage.removeItem('user')
-
-        window.location.href = '/login'
+        // refreshAccessToken chỉ xoá refreshToken khi bị từ chối dứt khoát.
+        // Còn token ⇒ lỗi tạm thời ⇒ không đá về login, để lần sau thử lại.
+        if (!localStorage.getItem('refreshToken')) {
+          window.location.href = '/login'
+        }
 
         return Promise.reject(refreshError)
       }
